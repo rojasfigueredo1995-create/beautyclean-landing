@@ -607,13 +607,13 @@ function tdMatch(list){
   P.forEach(p=>{ let t=null;
     if(slugs[p.id]) t=list.find(x=>x.slug===slugs[p.id]);
     if(!t){ const k=norm(p.name); t=list.find(x=>norm(x.name)===k); }
-    if(t) TDS.map[p.id]={productId:t.id,slug:t.slug,img:TD.imageOf(t),skus:null};
+    if(t) TDS.map[p.id]={productId:t.id,slug:t.slug,img:TD.imageOf(t),skus:t.skus||null,item:t};
   });
 }
 function skuFor(id,tone){
   const m=TDS.map[id]; if(!m||!m.skus||!m.skus.length) return undefined;
-  if(tone){ const s=m.skus.find(s=>norm(JSON.stringify(s.options||"")).includes(norm(tone))); if(s) return s.id; }
-  return (m.skus.find(s=>s.status!=="inactive"&&s.stock!==0)||m.skus[0]).id;
+  if(tone){ const s=m.skus.find(s=>norm((s.key||"")+JSON.stringify(s.options||"")).includes(norm(tone))); if(s) return s.id; }
+  return (m.skus.find(s=>s.status!=="AGOTADO"&&s.status!=="inactive"&&s.stock!==0)||m.skus[0]).id;
 }
 function tdItems(){
   const lines=cart.map(l=>({id:l.id,tone:l.tone,n:l.n})); if(bump) lines.push({id:BUMP.id,tone:null,n:1});
@@ -634,8 +634,9 @@ async function tdInit(){
     const [store,list,cities]=await Promise.all([TD.getStore(),TD.allProducts(),TD.getCities().catch(()=>null)]);
     TDS.store=store; TDS.cities=cities; tdMatch(list);
     await Promise.all(Object.entries(TDS.map).map(async([id,m])=>{ try{
-      const d=await TD.detail(m.slug); m.skus=d.skus||[]; m.img=TD.imageOf(d)||m.img;
-      const s=m.skus.find(x=>x.status!=="inactive")||m.skus[0], p=byId[id];
+      if(!m.skus&&m.slug){ const d=await TD.detail(m.slug); m.skus=d.skus||[]; m.img=TD.imageOf(d)||m.img; m.item=d; }
+      m.skus=m.skus||[];
+      const s=m.skus.find(x=>x.status!=="AGOTADO"&&x.status!=="inactive")||m.skus[0]||m.item, p=byId[id];
       if(s){ const pr=s.salePrice||s.price; if(pr){ if(s.salePrice&&s.price>s.salePrice) p.cmp=s.price; p.price=pr; } }
     }catch(e){} }));
     TDS.ready=Object.keys(TDS.map).length>0;
@@ -943,7 +944,7 @@ function viewCheckout(app){
   const sub=el("button","addbtn","Confirmar pedido"); sub.type="submit"; fm.append(sub);
   fm.append(el("p","note","Vista previa: este formulario todavía no envía pedidos. Se conecta a la tienda cuando lo apruebes."));
   fm.addEventListener("submit",e=>{e.preventDefault(); let ok=true;
-    [["cNom",v=>v.trim().length>=3,"Escribí tu nombre y apellido"],["cTel",v=>v.replace(/\D/g,"").length>=9,"Escribí un WhatsApp válido"],["cDep",v=>!!v,"Elegí tu departamento"],["cCiu",v=>v.trim().length>=2,"Escribí tu ciudad"],["cDir",v=>v.trim().length>=5,"Escribí tu dirección"]].forEach(([id,t,m])=>{const i=$(id);if(!t(i.value||"")){ok=false;i.parentElement.classList.add("bad");i.parentElement.querySelector(".err").textContent=m;}});
+    [["cNom",v=>/\S+\s+\S+/.test(v.trim()),"Escribí tu nombre y apellido"],["cTel",v=>v.replace(/\D/g,"").length>=9,"Escribí un WhatsApp válido"],["cDep",v=>!!v,"Elegí tu departamento"],["cCiu",v=>v.trim().length>=2,"Escribí tu ciudad"],["cDir",v=>v.trim().length>=5,"Escribí tu dirección"]].forEach(([id,t,m])=>{const i=$(id);if(!t(i.value||"")){ok=false;i.parentElement.classList.add("bad");i.parentElement.querySelector(".err").textContent=m;}});
     if(!ok){const b=fm.querySelector(".bad input,.bad select");b&&b.focus();return;}
     if(TDS.ready){ tdSubmit(fm,sub); return; }
     last={items:cart.slice(),bump,total:cartTotal(),name:form.cNom,tel:form.cTel,dep:form.cDep,pago:form.pago||"ce"}; cart=[]; bump=false; saveCart(); go("gracias");
