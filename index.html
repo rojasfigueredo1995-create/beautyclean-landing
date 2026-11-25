@@ -500,6 +500,44 @@ footer .logo{color:#fff;font-size:30px}
 .ilimg{border-radius:16px;overflow:hidden;background:#F5F3EF;margin-top:6px}
 .ilimg img{width:100%;height:auto;display:block}
 .ilsticky{width:100%;background:#171717;color:#fff;border:0;border-radius:999px;min-height:54px;font:inherit;font-size:15px;font-weight:800;letter-spacing:-.3px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+
+/* portada estilo infinitelove */
+.hero h1{font-family:Inter,system-ui,sans-serif;font-weight:600;font-size:clamp(36px,5vw,60px);line-height:1.06;letter-spacing:-.9px}
+.hero p{font-size:clamp(15px,1.4vw,18px);font-weight:300;line-height:1.4}
+.hero .in{padding-block:140px 28px;align-items:flex-start;width:100%;min-width:0;box-sizing:border-box}
+.hero .btn-w{font-size:14px;padding:0 30px;min-height:52px;min-width:min(266px,100%)}
+@media (max-width:640px){.hero .in{align-items:stretch;text-align:center}.hero .btn-w{align-self:stretch}.hero p{align-self:center}}
+.bubs{width:100%;display:flex;gap:14px;overflow-x:auto;margin-top:10px;padding-bottom:4px;scrollbar-width:none;max-width:100%}
+.bubs::-webkit-scrollbar{display:none}
+.bub{flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;color:#fff;font-size:12px;font-weight:500;cursor:pointer;width:76px;padding:0}
+.bub .ci{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.85);background:rgba(255,255,255,.2)}
+.bub .ci img{width:100%;height:100%;object-fit:cover;display:block}
+.bub span:last-child{line-height:1.2;text-align:center}
+.trust{overflow:hidden;white-space:nowrap;border-bottom:1px solid #EAEAEA;padding-block:20px}
+.trust .tr{display:inline-flex;gap:56px;animation:mq 45s linear infinite;padding-left:16px}
+.trust span{font-size:15px;font-weight:600;letter-spacing:-.3px;text-transform:uppercase;color:#111}
+@media (prefers-reduced-motion:reduce){.trust .tr{animation:none}}
+.lprail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;align-items:flex-start}
+.lprail::-webkit-scrollbar{display:none}
+.lprail>*{scroll-snap-align:start;flex:none}
+.lprail .pc{width:clamp(150px,22vw,260px)}
+.lpbig{position:relative;width:clamp(230px,32vw,400px);aspect-ratio:3/4;border-radius:16px;overflow:hidden;border:0;padding:0;cursor:pointer;background:#F5F3EF}
+.lpbig img{width:100%;height:100%;object-fit:cover;display:block}
+.lpbig span{position:absolute;left:12px;right:12px;bottom:12px;color:#fff;font-size:14px;font-weight:600;text-align:left;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.lpbar{position:relative;height:2px;background:#E4E3E1;margin-top:18px;border-radius:2px;overflow:hidden}
+.lpbar i{position:absolute;top:0;bottom:0;background:#000;border-radius:2px;transition:left .1s}
+.pc .badge{left:10px;top:10px;bottom:auto;text-transform:none}
+.sh h2{font-family:Inter,system-ui,sans-serif;font-weight:600;letter-spacing:-.9px}
+.bigmq{font-family:Inter,system-ui,sans-serif;font-weight:500;letter-spacing:-1px;font-size:clamp(31px,4.5vw,55px);padding-block:36px}
+.bigmq .tr span{color:#E7E7E7}
+.hb{padding-block:24px}
+.banner2b{position:relative;border-radius:24px;overflow:hidden;min-height:clamp(520px,62vw,680px);display:flex;align-items:flex-start;justify-content:center;color:#fff;text-align:center;background:linear-gradient(160deg,#8C7B70,#D9C7B8)}
+.banner2b .bgimg{position:absolute;inset:0}.banner2b .bgimg img{width:100%;height:100%;object-fit:cover}
+.banner2b::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.15) 60%,rgba(0,0,0,0))}
+.banner2b .in{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:560px;padding:40px 20px}
+.banner2b h2{margin:0;font-family:Inter,system-ui,sans-serif;font-weight:700;font-size:clamp(32px,4vw,48px);letter-spacing:-1px;line-height:1.08;color:#fff}
+.banner2b p{margin:0;font-size:16px;font-weight:500;letter-spacing:-.4px;line-height:1.4}
+.banner2b .btn-o{align-self:stretch;max-width:320px;margin-inline:auto;width:100%;font-weight:600;font-size:14px;letter-spacing:.6px;border-radius:999px}
 </style>
 
 <header class="hdr gut" id="hdr">
@@ -624,7 +662,7 @@ const P=[
   faq:[["¿Qué cobertura tiene?","Ligera a media, para un acabado natural y fresco."],["¿En qué tipo de piel funciona mejor?","Ideal para pieles normales, secas y mixtas."],["¿Oxida con el tiempo?","Está pensada para mantener el tono. Dejá asentar 2–3 minutos para confirmar el tono."],["¿Cuánto rinde?","Con uso moderado, aproximadamente 4 a 6 semanas."]]}
 ];
 const CATS=[
- {id:"antiedad",name:"Antiedad"},{id:"hidratacion",name:"Hidratación y manchas"},{id:"ojoslabios",name:"Ojos y labios"},{id:"maquillaje",name:"Maquillaje"},{id:"herramientas",name:"Herramientas"}
+ {id:"antiedad",name:"Antiedad"},{id:"hidratacion",name:"Hidratación y manchas"},{id:"ojoslabios",name:"Labios y mirada"},{id:"maquillaje",name:"Maquillaje"},{id:"herramientas",name:"Herramientas"}
 ];
 const BEST=["retinol","althea147","pdrn","celimax","lipshot","ojos"];
 const NEW=["beevenom","althea345","manchas","base","pestanas","balsamo","cepillo"];
@@ -646,6 +684,7 @@ const RUT={
  pestanas:{para:"Para realzar la mirada sin pegamento. Se colocan con imán en segundos.",zona:"Pestañas",cuando:"Cuando quieras un look especial",comp:["ojos","base","lipshot"],motivo:"Mirada realzada en segundos"},
  cepillo:{para:"Para el rostro hinchado o cansado. Un masaje suave que ayuda a aplicar mejor tus cremas.",zona:"Rostro, mandíbula y cuello",cuando:"1 vez al día, 3 a 5 minutos sobre la piel seca, antes de tus cremas",comp:["beevenom","pdrn","althea147"],motivo:"Masaje facial que potencia tus cremas"}
 };
+const HOMEIMG={hero:"base-7.jpg",banner1:"pdrn-0.jpg",banner2:"retinol-0.jpg",best:"althea147-0.jpg",nov:"pestanas-0.jpg","cat-antiedad":"celimax-0.jpg","cat-hidratacion":"manchas-0.jpg","cat-ojoslabios":"lipshot-3.jpg","cat-maquillaje":"base-5.jpg","cat-herramientas":"cepillo-4.jpg","bub-antiedad":"celimax-0.jpg","bub-hidratacion":"manchas-0.jpg","bub-ojoslabios":"pestanas-0.jpg","bub-maquillaje":"base-7.jpg","bub-herramientas":"cepillo-4.jpg"};
 const IMGN={"retinol": 8, "althea147": 7, "lipshot": 7, "ojos": 7, "beevenom": 8, "celimax": 7, "althea345": 8, "manchas": 8, "pdrn": 8, "pestanas": 8, "cepillo": 7, "balsamo": 8, "base": 8};
 const CONT={"retinol": {"aud": "Pensado para mujeres desde los 30", "q": "¿Las líneas y la textura irregular se notan cada vez más?", "ctx": "Con los años es común notar líneas finas, poros más visibles y una textura menos pareja. El Sérum reafirmante con retinol y péptidos es un paso de noche que, con uso constante, ayuda a mejorar progresivamente la apariencia de líneas y textura.", "a": 2, "zt": "Rostro y cuello, de noche", "zp": "Aplicalo sobre la piel limpia, antes de la crema. Evitá el contorno de ojos y los labios. Al empezar, usalo día por medio y aumentá según cómo lo tolere tu piel. De día usá protector solar.", "b": 0, "et": "Resultados progresivos, no inmediatos", "ep": "El retinol trabaja con constancia: la mejora de la apariencia se nota con el uso sostenido y varía en cada piel. Es distinto de Celimax Retinal (15 ml): no se mezclan sus instrucciones ni sus resultados.", "c": 1, "faq": [["¿Qué regalo incluye el combo de dos?", "El combo de 2 sérums incluye 1 Celimax Retinal Shot de 15 ml de regalo."], ["¿Es lo mismo que Celimax Retinal?", "No. Son dos productos distintos, con fórmulas e instrucciones propias."]]}, "althea147": {"aud": "Pensado para piel seca o con tirantez", "q": "¿La piel se siente tirante incluso después de tu rutina?", "ctx": "La sensación de tirantez suele aparecer cuando la piel pierde humedad. Dr. Althea 147 es una crema gel ligera, con ácido hialurónico y guayazuleno, que aporta hidratación y ayuda a cuidar la barrera de humedad para una sensación de suavidad y confort.", "a": 0, "zt": "Rostro y cuello, mañana y noche", "zp": "Usala como último paso de tu rutina, después del sérum. Se absorbe rápido y no deja sensación pesada.", "b": 3, "et": "Confort que se siente desde el primer uso", "ep": "La sensación de hidratación y confort suele notarse al aplicarla; la apariencia de una piel más suave y equilibrada acompaña el uso constante. Es una crema distinta de la Dr. Althea 345.", "c": 2, "faq": [["¿Qué significa 147?", "Es el nombre de la línea de Dr. Althea. No indica una cantidad de ingredientes."], ["¿En qué se diferencia de la 345?", "La 147 se enfoca en hidratación y sensación de tirantez; la 345 en confort diario para piel sensible."]]}, "lipshot": {"aud": "Pensado para labios secos", "q": "¿Tus labios se sienten secos y el labial marca cada línea?", "ctx": "Cuando los labios están secos, el labial se asienta en las líneas y se ve menos parejo. Lip Shot aporta hidratación y ayuda a que los labios se vean y se sientan más suaves y cuidados.", "a": 3, "zt": "Solo en los labios", "zp": "De día, antes del labial, para una base más suave. De noche, antes de dormir, como cuidado labial.", "b": 2, "et": "Labios más suaves e hidratados", "ep": "Es un cuidado cosmético de hidratación: no es un relleno permanente. Si sentís ardor o molestia, dejá de usarlo.", "c": 1, "faq": [["¿Es un relleno?", "No. Es un cuidado labial que hidrata y suaviza la apariencia de los labios."]]}, "beevenom": {"aud": "Pensado para piel seca que luce menos suave", "q": "¿Tu piel se siente seca y luce menos suave de lo que te gustaría?", "ctx": "La falta de hidratación hace que la piel se vea opaca y que las líneas se noten más. OUHOE Bee Venom (20 g), con ácido hialurónico, es un paso de hidratación que ayuda a que la piel luzca más suave y luminosa.", "a": 1, "zt": "Rostro y cuello, mañana o noche", "zp": "Aplicala después del sérum, con movimientos suaves hacia arriba. De día, acompañala con protector solar.", "b": 3, "et": "Un paso de hidratación, con expectativas realistas", "ep": "La sensación de hidratación se nota al aplicarla; la apariencia más suave acompaña el uso constante y varía en cada piel. La palabra impresa en el envase no la convierte en un procedimiento estético.", "c": 2, "faq": [["¿Qué presentación recibo?", "Un tubo de OUHOE Bee Venom de 20 g por unidad."]]}, "celimax": {"aud": "Pensado para empezar una rutina de noche", "q": "¿Querés cuidar las líneas y la textura, pero no sabés por dónde empezar?", "ctx": "Celimax Retinal Shot Tightening Booster (15 ml), con 0,1% de retinal y péptidos, es una rutina de noche enfocada en la apariencia de líneas finas y textura, con resultados progresivos según la tolerancia de tu piel.", "a": 2, "zt": "Rostro, de noche, de a poco", "zp": "Sobre la piel limpia y antes de la crema. Al comenzar, 2 veces por semana, evitando ojos y labios. De día usá protector solar.", "b": 3, "et": "Progresivo y según tu tolerancia", "ep": "La apariencia de la textura mejora con el uso sostenido. Si sentís tirantez o irritación, espaciá las aplicaciones. Es Retinal de 15 ml, distinto del sérum con retinol.", "c": 0, "faq": [["¿Es Retinal de 15 ml?", "Sí: Celimax Retinal Shot Tightening Booster, presentación de 15 ml."], ["¿Es lo mismo que el sérum con retinol?", "No. Son productos distintos, con instrucciones propias."]]}, "althea345": {"aud": "Pensado para piel sensible que busca confort", "q": "¿Tu piel necesita confort, no otra rutina cargada?", "ctx": "Cuando la piel se siente sensible o seca, sumar pasos puede ser contraproducente. Dr. Althea 345 es una crema de hidratación diaria con niacinamida y ceramidas, pensada para dar confort con un solo paso.", "a": 1, "zt": "Rostro, mañana y noche", "zp": "Aplicala después del sérum, o sola si buscás una rutina simple. Distribuila con suavidad sobre todo el rostro.", "b": 4, "et": "Hidratación y confort diario", "ep": "Ayuda a que la piel se sienta más hidratada y confortable. Es un cosmético: no trata acné, rosácea ni enfermedades de la piel.", "c": 2, "faq": [["¿Sirve para tratar el acné o la rosácea?", "No. Es una crema de hidratación diaria; ante una condición de la piel, consultá a un profesional."]]}, "manchas": {"aud": "Pensado para tono desigual", "q": "¿El tono desigual hace que tu rostro se vea apagado?", "ctx": "El sol y el paso del tiempo pueden dejar un tono menos parejo. Esta crema ligera, con arbutina, ácido tranexámico, niacinamida y glutatión, ayuda a mejorar la apariencia del tono con uso constante.", "a": 1, "zt": "Sobre las manchas o en todo el rostro", "zp": "Mañana y noche, sobre la piel limpia. De día, siempre con protector solar.", "b": 3, "et": "Un tono más parejo, con constancia", "ep": "La apariencia del tono mejora de forma progresiva y depende de cada piel y del uso de protector solar. No elimina cualquier tipo de mancha.", "c": 4, "faq": [["¿Elimina todas las manchas?", "No. Ayuda a mejorar la apariencia del tono desigual con uso constante y protector solar."]]}, "pdrn": {"aud": "Pensado para piel deshidratada", "q": "¿Sentís la piel deshidratada y con poca luminosidad?", "ctx": "La deshidratación le quita luz a la piel. El sérum Medicube PDRN es un paso ligero que aporta hidratación y ayuda a mejorar la apariencia de luminosidad.", "a": 1, "zt": "Rostro y cuello, mañana y noche", "zp": "Aplicá 2 a 3 gotas sobre la piel limpia y después tu crema. Se absorbe rápido, sin sensación pegajosa.", "b": 2, "et": "Hidratación y luminosidad, sin promesas de clínica", "ep": "Es un sérum cosmético: ayuda a la hidratación y a la apariencia de luminosidad. No equivale a procedimientos inyectables.", "c": 4, "faq": [["¿Es el sérum o la crema?", "Es el sérum Medicube PDRN, en frasco con gotero."]]}, "pestanas": {"aud": "Pensado para realzar la mirada", "q": "¿Querés realzar tu mirada sin lidiar con pegamento?", "ctx": "Las pestañas con pegamento pueden ser incómodas y difíciles de colocar. Las pestañas magnéticas se colocan con el aplicador incluido, sin pegamento, y se pueden reutilizar.", "a": 0, "zt": "Sobre tus pestañas naturales", "zp": "Separá las pestañas, colocalas en el aplicador magnético y acercalo a tus pestañas. Las primeras veces puede llevar un poco de práctica.", "b": 1, "et": "Práctica y reutilizable", "ep": "Con cuidado y guardadas en su estuche, se reutilizan muchas veces. Para retirarlas, separalas con suavidad.", "c": 2, "faq": []}, "cepillo": {"aud": "Pensado para un momento de autocuidado", "q": "¿Querés sumar un momento de cuidado sin una rutina complicada?", "ctx": "Un masaje suave de pocos minutos puede ser un momento simple para vos. El cepillo de masaje facial se usa en seco, antes de tus cremas, con cerdas suaves para piel sensible y madura.", "a": 1, "zt": "Rostro, mandíbula y cuello", "zp": "1 vez al día, 3 a 5 minutos, sobre la piel seca y con movimientos suaves hacia arriba. Después aplicá tus productos habituales.", "b": 2, "et": "Un masaje suave, simple de usar", "ep": "Es un accesorio de masaje para tu rutina: no elimina toxinas ni redefine la mandíbula. Con 3 unidades recibís 4 cepillos.", "c": 3, "faq": []}, "balsamo": {"aud": "Pensado para zonas que sentís más secas", "q": "¿Las zonas resecas hacen que tus líneas se noten más?", "ctx": "Cuando una zona está seca, las líneas se marcan más. El bálsamo facial en barra aporta hidratación localizada y ayuda a mejorar la apariencia de sequedad, con un acabado luminoso.", "a": 0, "zt": "Frente, entrecejo y surcos", "zp": "Pasalo sobre la piel limpia en las zonas que sientas más secas, cuando lo necesites. Es un bálsamo facial: no lo uses en labios ni párpados.", "b": 3, "et": "Hidratación práctica, en barra", "ep": "Ayuda a que la piel se sienta más suave y luzca menos seca. No borra arrugas de forma permanente.", "c": 2, "faq": [["¿Puedo usarlo en labios o párpados?", "No. Es un bálsamo facial para zonas como frente, entrecejo y surcos."]]}, "base": {"aud": "Pensado para un maquillaje liviano", "q": "¿Tu base se ve pesada o no acompaña el tono de tu piel?", "ctx": "Una base pesada puede marcar las líneas y verse poco natural. La base cushion Beauty Cream ofrece cobertura ligera a media con acabado natural, y elegís el tono de cada unidad.", "a": 7, "zt": "Rostro, a toquecitos con el puff", "zp": "Después de tu crema, aplicá poca cantidad a toquecitos y construí la cobertura de a poco.", "b": 5, "et": "Elegí tu tono con claridad", "ep": "Tonos disponibles: Bronceado, Natural y Marfil. No reemplaza al protector solar ni elimina manchas o arrugas.", "c": 4, "faq": [["¿Cómo elijo el tono de cada unidad?", "Elegí el tono antes de agregar al carrito. Si querés tonos distintos, agregá cada tono por separado."]]}};
 const RUTINAS=[
@@ -827,7 +866,7 @@ const pt=$("pillTr"); for(let i=0;i<4;i++) pillTxt.forEach(t=>pt.append(el("span
 function photo(box,key,label,opts){
   opts=opts||{};
   box.querySelectorAll(":scope > .ph, :scope > img, :scope > .up, :scope > .bgimg").forEach(n=>n.remove());
-  const id=photos[key]; const ext=!id&&key.slice(0,2)==="p-"&&((typeof IMGN!=="undefined"&&IMGN[key.slice(2)])?key.slice(2)+"-0.jpg":(TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img));
+  const id=photos[key]; const ext=!id&&((typeof HOMEIMG!=="undefined"&&HOMEIMG[key])||key.slice(0,2)==="p-"&&((typeof IMGN!=="undefined"&&IMGN[key.slice(2)])?key.slice(2)+"-0.jpg":(TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img)));
   if(id||ext){ const im=el("img"); im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
   else if(!opts.noph){ const ph=el("div","ph"); ph.innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-7 7"/></svg>'; ph.append(el("span",null,label)); box.prepend(ph); }
   if(canEdit&&assets&&!opts.noup){ const b=el("button","up",id?"Cambiar foto":"Subir foto"); b.type="button"; b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();pick(key,b);}); if(opts.upTarget) opts.upTarget.append(b); else box.append(b); }
@@ -845,7 +884,7 @@ function shrink(file){return new Promise((res,rej)=>{const img=new Image(),u=URL
 function card(p){
   const b=el("button","pc"); b.type="button"; b.setAttribute("aria-label",p.name);
   const im=el("div","im"); photo(im,"p-"+p.id,p.short,{});
-  const badge=el("span","badge","Black Friday"); im.append(badge);
+  const badge=el("span","badge","Oferta"); im.append(badge);
   b.append(im, el("h3",null,p.name), el("span","br","Beauty Clean"));
   const pr=el("div","price"); pr.append(el("s",null,gs(p.cmp)), el("b",null,gs(p.price))); b.append(pr);
   b.addEventListener("click",()=>go("p-"+p.id));
@@ -855,22 +894,45 @@ function rail(ids){ const r=el("div","rail prods"); ids.forEach(id=>r.append(car
 function secHead(title,count,link){ const h=el("div","sh"); const t=el("h2",null,title); if(count){const s=el("sup",null,String(count)); t.append(s);} h.append(t); if(link){const a=el("a",null,"Ver todo ›"); a.addEventListener("click",()=>go(link)); h.append(a);} return h; }
 
 /* vistas */
+function lpSlider(title,ids,img,cap){
+  const s=el("section","sec gut lps"); s.append(secHead(title,ids.length,"productos"));
+  const r=el("div","lprail");
+  const big=el("button","lpbig"); big.type="button"; const im=el("img"); im.src=img; im.alt=""; im.loading="lazy"; big.append(im, el("span",null,cap)); big.addEventListener("click",()=>go("productos")); r.append(big);
+  ids.forEach(id=>{ if(byId[id]) r.append(card(byId[id])); });
+  const pg=el("div","lpbar"); const fill=el("i"); pg.append(fill);
+  const upd=()=>{ const m=r.scrollWidth-r.clientWidth; const v=r.clientWidth/r.scrollWidth; fill.style.width=(v*100)+"%"; fill.style.left=(m>0?(r.scrollLeft/m)*(100-v*100):0)+"%"; };
+  r.addEventListener("scroll",upd,{passive:true}); requestAnimationFrame(upd); setTimeout(upd,400);
+  s.append(r,pg); return s;
+}
+function heroBanner(key,t,p,btn,link){
+  const w=el("section","gut hb"); const ban=el("div","banner2b"); photo(ban,key,"",{wrap:true,noph:true,noup:true});
+  const bi=el("div","in"); bi.append(el("h2",null,t), el("p",null,p));
+  const bb=el("button","btn-o",btn); bb.type="button"; bb.addEventListener("click",()=>go(link)); bi.append(bb); ban.append(bi);
+  if(canEdit&&assets){ const u=el("div","uphint"); photo(el("div"),key,"",{noph:true,upTarget:u}); ban.append(u); }
+  w.append(ban); return w;
+}
 function viewHome(app){
   setHeader(false);
+  /* 1. portada */
   const hero=el("section","hero"); photo(hero,"hero","",{wrap:true,noph:true,noup:true});
-  const inn=el("div","in gut"); inn.append(el("span","tagbf","BLACK FRIDAY · NAVIDAD"));
-  const h=el("h1",null,"Belleza y cuidado personal para elegir con confianza"); inn.append(h);
-  inn.append(el("p",null,"Hasta 35% menos llevando 3 unidades, con cepillo facial de regalo. Envío gratis a todo Paraguay y pagás al recibir."));
+  const inn=el("div","in gut");
+  inn.append(el("h1",null,"Fórmulas que transforman tu piel"));
+  inn.append(el("p",null,"Cuidado facial pensado para tu piel: resultados visibles día tras día, con envío gratis y pago al recibir."));
   const b=el("button","btn-w","COMPRAR AHORA"); b.type="button"; b.addEventListener("click",()=>go("productos")); inn.append(b);
+  const bub=el("div","bubs");
+  CATS.forEach(c=>{ const x=el("button","bub"); x.type="button"; const ci=el("span","ci"); const im=el("img"); im.src=HOMEIMG["bub-"+c.id]; im.alt=""; im.loading="lazy"; ci.append(im); x.append(ci, el("span",null,c.name)); x.addEventListener("click",()=>{filter=c.id; go("productos");}); bub.append(x); });
+  inn.append(bub);
   hero.append(inn);
   if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"hero","",{noph:true,upTarget:w}); hero.append(w); }
   app.append(hero);
 
-  const perks=el("div","perks gut");
-  [["🚚","Envío gratis","A todo Paraguay"],["💵","Contra entrega","O por transferencia"],["⏱️","24 a 72 h hábiles","Según tu ciudad"],["🎁","Cepillo de regalo","Llevando 3 unidades"]].forEach(([i,t,s])=>{const d=el("div");const ic=el("span","ic",i);const tx=el("span");tx.append(el("b",null,t),document.createTextNode(s));d.append(ic,tx);perks.append(d);});
-  app.append(perks);
+  /* 2. fila de garantías (en vez de logos de prensa) */
+  const tr2=el("div","trust"); const tt=el("div","tr");
+  for(let i=0;i<3;i++) ["Pagás al recibir","Envío gratis a todo Paraguay","Entrega en 24 a 72 h hábiles","Cambios hasta 30 días"].forEach(t=>tt.append(el("span",null,t)));
+  tr2.append(tt); app.append(tr2);
 
-  const cs=el("section","sec gut"); cs.append(secHead("Comprá por categoría"));
+  /* 3. categorías */
+  const cs=el("section","sec gut");
   const cr=el("div","rail");
   CATS.forEach(c=>{ const b=el("button","cat"); b.type="button"; const bg=el("div","bg"); b.append(bg);
     bg.style.background=({antiedad:"linear-gradient(160deg,#8C7B70,#D9C7B8)",hidratacion:"linear-gradient(160deg,#6F8796,#C9D6DD)",ojoslabios:"linear-gradient(160deg,#9A7468,#E6CBBE)",maquillaje:"linear-gradient(160deg,#A08A74,#EADBC9)",herramientas:"linear-gradient(160deg,#6D7268,#CFD3C8)"})[c.id];
@@ -880,31 +942,29 @@ function viewHome(app){
     b.addEventListener("click",()=>{filter=c.id; go("productos");}); cr.append(b); });
   cs.append(cr); app.append(cs);
 
-  const bs=el("section","sec gut"); bs.append(secHead("Más vendidos",BEST.length,"productos"), rail(BEST)); app.append(bs);
+  /* 4. más vendidos: foto grande + productos + línea de avance */
+  app.append(lpSlider("Más vendidos",BEST,HOMEIMG.best,"Hidratación que calma, mañana y noche"));
 
+  /* 5. marquee */
   const mq=el("div","bigmq"); const tr=el("div","tr");
-  for(let i=0;i<4;i++){ tr.append(el("span",null,"Envío gratis a todo Paraguay")); const e=el("em",null,"Black Friday"); tr.append(e); tr.append(el("span",null,"Pagás al recibir")); }
+  for(let i=0;i<3;i++){ ["Para tu piel, con mucho mimo","Para tu piel, con mucho amor","Para tu piel, con mucha pasión"].forEach(t=>tr.append(el("span",null,t))); }
   mq.append(tr); app.append(mq);
 
-  const bn=el("section","gut"); const ban=el("div","banner"); photo(ban,"banner1","",{wrap:true,noph:true,noup:true});
-  const bi=el("div","in gut"); bi.append(el("h2",null,"Tu piel, en su mejor versión"), el("p",null,"Rutinas simples con productos coreanos: limpiás, aplicás tu sérum y sellás con crema. Así de fácil."));
-  const bb=el("button","btn-o","PROBALA HOY"); bb.type="button"; bb.addEventListener("click",()=>go("p-retinol")); bi.append(bb); ban.append(bi);
-  if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"banner1","",{noph:true,upTarget:w}); ban.append(w); }
-  bn.append(ban); app.append(bn);
+  /* 6. banner 1 */
+  app.append(heroBanner("banner1","Tu piel, en su mejor versión","Porque cuando tu piel se ve bien, todo se siente más fácil. Hidratada, suave y luminosa, como vos.","PROBALA HOY","p-pdrn"));
 
-  const ns=el("section","sec gut"); ns.append(secHead("Novedades",NEW.length,"productos"), rail(NEW)); app.append(ns);
+  /* 7. novedades */
+  app.append(lpSlider("Novedades",NEW,HOMEIMG.nov,"Mirada realzada, sin pegamento"));
 
+  /* 8. banner 2 */
+  app.append(heroBanner("banner2","Piel suave y radiante cada día","Unas gotas de noche, antes de tu crema: con uso constante, la piel se ve más lisa, firme y luminosa.","COMPRAR AHORA","p-retinol"));
+
+  /* packs */
   const pk=el("section","sec gut"); pk.id="packs"; const pkin=el("div","packsec gut");
-  pkin.append(secHead("Packs de Black Friday"));
+  pkin.append(secHead("Cuantas más llevás, más ahorrás"));
   const hp=el("div","howpk");
   [["1","Llevá 1 y probalo","Precio de oferta en cada producto."],["2","2 unidades, 30% menos","Ideal para compartir o tener de repuesto."],["3","3 unidades, 35% menos","Y te regalamos un cepillo facial."]].forEach(([n,t,s])=>{const d=el("div");d.append(el("span","n",n),el("span","t",t),el("p",null,s));hp.append(d);});
   pkin.append(hp); pk.append(pkin); app.append(pk);
-
-  const b2=el("section","sec gut"); const ban2=el("div","banner pine"); photo(ban2,"banner2","",{wrap:true,noph:true,noup:true});
-  const bi2=el("div","in gut"); bi2.append(el("h2",null,"Un regalo de Navidad que se usa todos los días"), el("p",null,"Armá tu pack, recibilo en 24 a 72 horas y pagá en efectivo cuando llega."));
-  const bb2=el("button","btn-w","ARMAR MI REGALO"); bb2.type="button"; bb2.addEventListener("click",()=>go("productos")); bi2.append(bb2); ban2.append(bi2);
-  if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"banner2","",{noph:true,upTarget:w}); ban2.append(w); }
-  b2.append(ban2); app.append(b2);
 
   const rs=el("section","sec gut"); rs.id="rutinas"; rs.append(secHead("Encontrá tu rutina según lo que buscás"), el("p","rsub big","Elegí lo que más te preocupa y te mostramos qué usar, en qué orden y cuándo."));
   const tabs=el("div","rtabs"); tabs.setAttribute("role","tablist"); const panel=el("div","rpanel");
