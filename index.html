@@ -557,6 +557,28 @@ footer .logo{color:#fff;font-size:30px}
 .bdpr{margin:0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;font-variant-numeric:tabular-nums}
 .bdpr s{color:#9a9a9a;font-size:13px}.bdpr b{font-size:16px;display:inline}.bdpr span{font-size:12px;font-weight:700;color:#8A5B4D}
 @media (max-width:400px){.bdet{grid-template-columns:1fr}.bdimg{max-width:220px}}
+
+/* oferta en el checkout y botones de pago */
+.bump{display:grid;grid-template-columns:auto minmax(0,1fr) 72px;gap:12px;align-items:center;border:1px solid #DECEBA;background:#F5F3EF;border-radius:12px;padding:14px;cursor:pointer}
+.bump.on{border:2px solid #000;padding:13px}
+.bump input{width:22px;height:22px;accent-color:#000;margin:0;flex:none}
+.bump .btx{display:flex;flex-direction:column;gap:4px;min-width:0}
+.bump .bk{font-size:11px;font-weight:700;letter-spacing:1.2px;color:#8A5B4D}
+.bump b{display:block;font-weight:500;font-size:15px;color:#000;line-height:1.35}.bump b strong{font-weight:700}
+.bump .btx>span:not(.bk){font-size:13px;color:#625D58;line-height:1.4}
+.bump .bpx{font-size:12px!important;color:#888!important}
+.bump .bimg{width:72px;height:72px;border-radius:8px;overflow:hidden;background:#fff;display:block}
+.bump .bimg img{width:100%;height:100%;object-fit:cover;display:block}
+.cotot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #E4E3E1;padding-top:12px;font-variant-numeric:tabular-nums}
+.cotot span{color:#625D58;font-size:14px}.cotot b{font-size:20px;font-weight:600;letter-spacing:-.5px}
+.paybtn{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 14px;align-items:center;text-align:left;width:100%;border:0;border-radius:16px;padding:14px 18px;cursor:pointer;min-height:64px;font:inherit}
+.paybtn svg{grid-row:span 2}
+.paybtn b{font-size:15px;font-weight:600;letter-spacing:.4px}
+.paybtn span{font-size:12.5px;opacity:.85}
+.paybtn.cod{background:#000;color:#fff}
+.paybtn.card{background:#fff;color:#000;border:1.5px solid #000}
+.paybtn[disabled]{opacity:.6;cursor:progress}
+.wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#000;color:#fff;border-radius:999px;padding:14px 22px;text-decoration:none;font-weight:500;min-height:50px}
 </style>
 
 <header class="hdr gut" id="hdr">
@@ -742,6 +764,7 @@ function tdMatch(list){
     if(!t){ const k=norm(p.name); t=list.find(x=>norm(x.name)===k); }
     if(t) TDS.map[p.id]={productId:t.id,slug:t.slug,img:TD.imageOf(t),skus:t.skus||null,item:t};
   });
+  if(typeof BUMPS!=="undefined") Object.entries(BUMPS).forEach(([k,b])=>{ const t=list.find(x=>norm(x.name)===norm(b.n)); if(t) TDS.map["bump-"+k]={productId:t.id,slug:t.slug,img:TD.imageOf(t),skus:t.skus||null,item:t,bump:true}; });
 }
 function skuFor(id,tone){
   const m=TDS.map[id]; if(!m||!m.skus||!m.skus.length) return undefined;
@@ -749,7 +772,7 @@ function skuFor(id,tone){
   return (m.skus.find(s=>s.status!=="AGOTADO"&&s.status!=="inactive"&&s.stock!==0)||m.skus[0]).id;
 }
 function tdItems(){
-  const lines=cart.map(l=>({id:l.id,tone:l.tone,n:l.n})); if(bump) lines.push({id:BUMP.id,tone:null,n:1});
+  const lines=cart.map(l=>({id:l.id,tone:l.tone,n:l.n})); if(bump&&BUMP.id) lines.push({id:"bump-"+BUMP.id,tone:null,n:1});
   if(lines.some(l=>!TDS.map[l.id])) return null;
   return lines.map(l=>{const it={productId:TDS.map[l.id].productId,quantity:l.n}; const s=skuFor(l.id,l.tone); if(s) it.skuId=s; return it;});
 }
@@ -796,16 +819,25 @@ function tdCheckoutFields(fm){
   const fields=(TDS.store&&TDS.store.checkout&&TDS.store.checkout.fields)||{};
   const em=fields.email&&(fields.email.status||fields.email.mode||fields.email);
   if(em==="required"||em==="optional"){
-    const d=el("div","f"); const l=el("label",null,"Email"+(em==="optional"?" (opcional)":"")); l.htmlFor="cMail"; const i=el("input"); i.type="email"; i.id="cMail"; i.autocomplete="email"; i.placeholder="tu@email.com"; if(form.cMail) i.value=form.cMail;
+    const d=el("div","f"); const l=el("label",null,"Email · te enviamos la confirmación de tu compra"); l.htmlFor="cMail"; const i=el("input"); i.type="email"; i.id="cMail"; i.autocomplete="email"; i.placeholder="tu@email.com"; if(form.cMail) i.value=form.cMail;
     const er=el("span","err"); i.addEventListener("input",()=>{form.cMail=i.value; d.classList.remove("bad"); er.textContent="";}); d.append(l,i,er); d.dataset.req=em;
     fm.querySelector("#cTel").parentElement.after(d);
   }
   const opts=((TDS.store&&TDS.store.paymentOptions)||[]);
   if(opts.length){
-    const pay=fm.querySelector(".paysel"); pay.querySelectorAll("label").forEach(n=>n.remove());
-    if(!opts.some(o=>o.id===form.pago)) form.pago=opts[0].id;
-    opts.forEach(o=>{ const l=el("label"); const r=el("input"); r.type="radio"; r.name="pago"; r.value=o.id; r.checked=form.pago===o.id; r.addEventListener("change",()=>{form.pago=o.id; drawSum();});
-      const x=el("span"); x.append(el("b",null,o.label||"Forma de pago")); if(o.manual&&o.manual.instructions) x.append(el("span",null,o.manual.instructions)); l.append(r,x); pay.append(l); });
+    const pay=fm.querySelector(".paysel"); if(pay) pay.hidden=true;
+    const cod=opts.find(o=>o.kind!=="stripe")||opts[0], card=opts.find(o=>o.kind==="stripe");
+    form.pago=cod.id;
+    const sub=fm.querySelector('button[type=submit]');
+    const ico={truck:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>',card:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>'};
+    const mk=(b,icon,t,d)=>{ b.className="paybtn "+(icon==="card"?"card":"cod"); b.innerHTML=ico[icon]; b.append(el("b",null,t), el("span",null,d)); b.dataset.label=t; };
+    const tot=el("div","cotot"); tot.id="coTot"; tot.append(el("span",null,"Total a pagar"), el("b",null,"—")); sub.before(tot);
+    mk(sub,"truck","PEDIR AHORA · PAGO AL RECIBIR",(cod.label||"Contra entrega")+" · Envío gratis");
+    sub.addEventListener("click",()=>{ form.pago=cod.id; });
+    if(card){ const cb=el("button"); cb.type="button"; const pct=card.adjustment&&card.adjustment.bps<0?Math.round(-card.adjustment.bps/100):0;
+      mk(cb,"card","PAGAR AHORA"+(pct?" · "+pct+"% OFF":""),"Pago seguro con tarjeta"); cb.id="cardBtn";
+      cb.addEventListener("click",()=>{ form.pago=card.id; drawSum(); if(fm.requestSubmit) fm.requestSubmit(); else fm.dispatchEvent(new Event("submit",{cancelable:true})); });
+      sub.after(cb); }
   }
   const n=fm.querySelector(".note:last-child"); if(n) n.textContent="Tu pedido llega directo a la tienda. Te escribimos por WhatsApp para confirmar.";
   const err=el("p","err tderr"); err.setAttribute("role","alert"); fm.append(err);
@@ -829,6 +861,9 @@ async function tdSum(S){
     if(q.paymentAdjustment) row("Ajuste por forma de pago",(q.paymentAdjustment>0?"+ ":"− ")+gs(Math.abs(q.paymentAdjustment)));
     row("Envío",form.cCiu?(q.shippingPrice?gs(q.shippingPrice):"Gratis"):"Elegí tu ciudad","e");
     row("Total",gs(q.total),"t");
+    const ct=document.getElementById("coTot"); if(ct) ct.querySelector("b").textContent=gs(q.total);
+    const card=((TDS.store&&TDS.store.paymentOptions)||[]).find(o=>o.kind==="stripe"), cbtn=document.getElementById("cardBtn");
+    if(card&&cbtn&&!(opt&&opt.kind==="stripe")){ TD.quote(Object.assign({},base,{viaStripe:true,customPaymentMethodId:undefined},TDS.ship?{shippingMethodId:TDS.ship}:{})).then(c=>{ const sp=cbtn.querySelector("span"); if(sp&&c&&c.total) sp.textContent="Pago seguro con tarjeta · "+gs(c.total); }).catch(()=>{}); }
     if(q.stockIssues&&q.stockIssues.length) S.append(el("p","note stockw","⚠️ Hay un producto con stock limitado para esa cantidad. Bajá la cantidad o elegí otro."));
   }catch(e){}
 }
@@ -843,7 +878,8 @@ async function tdSubmit(fm,btn){
   if(body.viaPagopar===undefined) body.viaPagopar=false;
   const sig=JSON.stringify([items,body.cityId,body.shippingMethodId,form.pago,body.tel,body.direction1]);
   if(sig!==ckSig){ ckSig=sig; ckKey=TD.uuid(); }
-  btn.disabled=true; btn.textContent="Enviando pedido…"; say("");
+  const useBtn=(opt&&opt.kind==="stripe"&&document.getElementById("cardBtn"))||btn, keep=useBtn.innerHTML;
+  fm.querySelectorAll(".paybtn").forEach(b=>b.disabled=true); useBtn.querySelector("b")?useBtn.querySelector("b").textContent="Enviando pedido…":useBtn.textContent="Enviando pedido…"; say("");
   try{
     const r=await TD.checkout(body,ckKey);
     const dep=TDS.cities&&TDS.cities.departments.find(d=>d.code===form.cDep);
@@ -853,7 +889,7 @@ async function tdSubmit(fm,btn){
     if(opt&&opt.kind==="stripe"){ const p=await TD.pay(r.publicToken,location.origin+location.pathname+"#gracias"); const u=p&&(p.url||p.checkoutUrl||p.redirectUrl); if(u){ location.href=u; return; } }
     go("gracias");
   }catch(e){
-    btn.disabled=false; btn.textContent="Confirmar pedido";
+    fm.querySelectorAll(".paybtn").forEach(b=>b.disabled=false); useBtn.innerHTML=keep;
     if(e.code==="INSUFFICIENT_STOCK"){ ckSig=null; say("Uno de los productos no tiene stock suficiente para esa cantidad. Ajustá el carrito y probá de nuevo."); drawSum(); }
     else if(e.code==="RATE_LIMITED") say("Hay muchos pedidos en este momento. Esperá unos segundos y probá de nuevo.");
     else if(e.code==="ORIGIN_NOT_ALLOWED") say("Esta página todavía no está autorizada en la tienda.");
@@ -864,9 +900,13 @@ async function tdSubmit(fm,btn){
 function tdThanksExtra(w){
   if(last.orderId) w.append(el("p",null,"Número de pedido: "+last.orderId+". Guardalo para consultar el estado."));
   const m=last.opt&&last.opt.manual;
-  if(m){ const b=el("div","payinfo"); b.style.textAlign="left"; b.append(el("h2",null,"Datos para la transferencia")); if(m.instructions) b.append(el("p",null,m.instructions));
+  if(m&&m.type!=="CASH"&&(m.accounts||[]).length){ const b=el("div","payinfo"); b.style.textAlign="left"; b.append(el("h2",null,"Datos para la transferencia")); if(m.instructions) b.append(el("p",null,m.instructions));
     (m.accounts||[]).forEach(a=>{ const p=el("p"); Object.values(a).filter(v=>typeof v==="string"||typeof v==="number").forEach((v,i)=>{ if(i) p.append(document.createElement("br")); p.append(document.createTextNode(String(v))); }); b.append(p); });
     w.append(b); }
+  const wa=(TDS.store&&TDS.store.whatsapp||"").replace(/\D/g,"");
+  if(wa){ const num=wa.startsWith("595")?wa:"595"+wa.replace(/^0/,"");
+    const msg="Hola! Hice el pedido #"+(last.orderId||"")+" en Beauty Clean por "+gs(last.total||0)+". Mi nombre es "+(last.name||"")+". Quedo atenta a la entrega.";
+    const a=el("a","wabtn","Recibir la confirmación por WhatsApp"); a.href="https://wa.me/"+num+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; w.append(el("p",null,"Te vamos a escribir por WhatsApp para coordinar la entrega. Si dejaste tu email, también te llega la confirmación ahí.")); w.append(a); }
   if(last.tracking){ const a=el("a",null,"Ver el estado de mi pedido"); a.href=last.tracking; a.target="_blank"; a.rel="noopener"; w.append(a); }
 }
 async function tdRestoreThanks(){
@@ -1156,8 +1196,19 @@ function viewProduct(app,id){
 function rerenderKeep(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
 let bump=false, form={};
 function lineTotal(l){ return l.special!=null? l.special : packPrice(byId[l.id],l.n); }
-function cartTotal(){ return cart.reduce((a,l)=>a+lineTotal(l),0) + (bump?BUMP.price:0); }
-const BUMP={id:"pestanas",price:139000};
+function cartTotal(){ return cart.reduce((a,l)=>a+lineTotal(l),0) + (bump&&BUMP.id?BUMP.price:0); }
+const BUMPS={
+ althea147:{n:"Dr. Althea 147 · Precio especial en tu pedido",why:"La crema que cierra tu rutina: hidrata y calma la piel, mañana y noche."},
+ pdrn:{n:"Medicube PDRN · Precio especial en tu pedido",why:"Unas gotas antes de tu crema para una piel más luminosa e hidratada."},
+ balsamo:{n:"Bálsamo facial · Precio especial en tu pedido",why:"Hidratación en barra para frente, entrecejo y surcos. Ideal para llevar en la cartera."},
+ beevenom:{n:"Bee Venom · Precio especial en tu pedido",why:"Crema para rostro y cuello que hidrata y deja la piel más suave y luminosa."},
+ pestanas:{n:"Pestañas magnéticas · Precio especial en tu pedido",why:"Sin pegamento y reutilizables: realzá tu mirada para cualquier ocasión."},
+ lipshot:{n:"Lip Shot · Precio especial en tu pedido",why:"Labios hidratados y suaves, antes del labial o antes de dormir."}
+};
+const BUMP_FOR={retinol:"althea147",celimax:"althea147",pdrn:"althea147",althea147:"pdrn",althea345:"pdrn",manchas:"pdrn",beevenom:"balsamo",balsamo:"beevenom",cepillo:"beevenom",lipshot:"pestanas",base:"lipshot",pestanas:"lipshot"};
+function bumpPick(){ const ids=cart.map(l=>l.id); for(const l of cart){ const b=BUMP_FOR[l.id]; if(b&&!ids.includes(b)&&byId[b]) return b; } return Object.keys(BUMPS).find(b=>!ids.includes(b)&&byId[b])||null; }
+function bumpBase(){ const l=cart.find(l=>BUMP_FOR[l.id]===bumpPick()); return l?byId[l.id]:null; }
+const BUMP={get id(){ return bumpPick(); },price:50000};
 function viewCheckout(app){
   setHeader(true);
   if(!cart.length){ const s=el("section","sec gut"); s.append(el("p","empty","Tu carrito está vacío.")); const b=el("button","addbtn","Ver productos"); b.style.maxWidth="320px"; b.addEventListener("click",()=>go("productos")); s.append(b); app.append(s); return; }
@@ -1169,9 +1220,15 @@ function viewCheckout(app){
   fm.append(fld("cNom","Nombre y apellido","text","Ej.: Laura Benítez"), fld("cTel","WhatsApp","tel","Ej.: 0981 123 456"));
   const g=el("div","g2"); g.append(fld("cDep","Departamento","select","",DEPS), fld("cCiu","Ciudad","text","Ej.: San Lorenzo")); fm.append(g);
   fm.append(fld("cDir","Dirección","text","Calle, número, barrio"), fld("cRef","Referencia (opcional)","text","Ej.: frente a la farmacia"));
-  if(!cart.some(l=>l.id===BUMP.id)){
-    const bl=el("label","bump"); const cb=el("input"); cb.type="checkbox"; cb.id="cBump"; cb.checked=bump; cb.addEventListener("change",()=>{bump=cb.checked; drawSum();});
-    const tx=el("span"); tx.append(el("b",null,"🎁 Sumá Pestañas magnéticas por "+gs(BUMP.price)), el("span",null,"Se colocan con imán, sin pegamento. Precio de oferta (antes "+gs(byId.pestanas.cmp)+").")); bl.append(cb,tx); fm.append(bl);
+  const bid=BUMP.id;
+  if(bid){ const bp=byId[bid], base=bumpBase();
+    const bl=el("label","bump"); const cb=el("input"); cb.type="checkbox"; cb.id="cBump"; cb.checked=bump; cb.addEventListener("change",()=>{bump=cb.checked; bl.classList.toggle("on",bump); drawSum();}); bl.classList.toggle("on",bump);
+    const tx=el("span","btx"); tx.append(el("span","bk","OFERTA SOLO EN ESTE PEDIDO"));
+    const t=el("b"); t.append(document.createTextNode("Sumá "+(bp.short||bp.name)+" por solo "), el("strong",null,gs(BUMP.price)+" más")); tx.append(t);
+    tx.append(el("span",null,(base?"Combina con tu "+(base.short||base.name)+". ":"")+BUMPS[bid].why));
+    tx.append(el("span","bpx","Precio normal "+gs(bp.price)+" · Te llega junto con tu pedido."));
+    const th=el("span","bimg"); if(typeof packSrc==="function"&&PACKS.has(bid)){ const im=el("img"); im.alt=""; packSrc(im,bid,1,bid+"-0.jpg"); th.append(im); }
+    bl.append(cb,tx,th); fm.append(bl);
   }
   const pay=el("fieldset","paysel"); pay.style.border="0"; pay.style.padding="0"; pay.style.margin="0"; pay.append(el("legend","lbl","Forma de pago"));
   [["ce","Pago contra entrega","Pagás cuando recibís el pedido. Disponible en todo Paraguay."],["tr","Transferencia bancaria","Te pasamos los datos por mensaje al confirmar. En Asunción podés transferir al recibir."]].forEach(([v,t,d],i)=>{const l=el("label");const r=el("input");r.type="radio";r.name="pago";r.value=v;r.checked=(form.pago||"ce")===v;r.addEventListener("change",()=>{form.pago=v;});const x=el("span");x.append(el("b",null,t),el("span",null,d));l.append(r,x);pay.append(l);});
@@ -1191,7 +1248,7 @@ function viewCheckout(app){
 function drawSum(){
   const S=$("sumbox"); if(!S) return; S.textContent=""; S.append(el("span","lbl","Tu pedido"));
   cart.forEach(l=>{const p=byId[l.id];const r=el("div","row");r.append(el("span",null,p.short+(l.tone?" · "+l.tone:"")+" × "+l.n+(l.n===3?" + cepillo de regalo":(l.n===2&&p.pack2?" + Celimax de regalo":""))),el("span",null,gs(lineTotal(l))));S.append(r);});
-  if(bump){const r=el("div","row");r.append(el("span",null,"Pestañas magnéticas × 1"),el("span",null,gs(BUMP.price)));S.append(r);}
+  if(bump&&BUMP.id){const r=el("div","row");r.append(el("span",null,(byId[BUMP.id].short||byId[BUMP.id].name)+" × 1 · precio especial"),el("span",null,gs(BUMP.price)));S.append(r);}
   const e=el("div","row e");e.append(el("span",null,"Envío"),el("span",null,TDS.ready?"Calculando…":"Gratis"));S.append(e);
   const t=el("div","row t");t.append(el("span",null,"Total al recibir"),el("span",null,gs(cartTotal())));S.append(t);
   if(TDS.ready) tdSum(S);
