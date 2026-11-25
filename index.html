@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="description" content="Beauty Clean: cuidado facial con envío a todo Paraguay. Pagás al recibir o por transferencia.">
+<script>
+/* Configuración de la conexión con Tiendy.
+   PK: la clave pública (empieza con pk_) que creás en Tiendy → Configuración → API,
+   con el dominio de esta página autorizado. Es pública por diseño; nunca pongas una clave sk_ acá.
+   Sin PK la página funciona en modo vista previa (no envía pedidos). */
+window.TIENDY_CONFIG = {
+  PK: "",
+  BASE: "https://www.tiendy.com.py/api/storefront/v1",
+  /* Opcional: slug de cada producto en Tiendy si el nombre no coincide exactamente. */
+  SLUGS: {}
+};
+
+</script>
+<script>
+/* Conexión con la API de storefront de Tiendy (https://www.tiendy.com.py/docs/llms-full.txt).
+   Usa solo la clave pública pk_ (pensada para el navegador). Nunca pongas aquí una clave sk_. */
+(function(){
+  const CFG = window.TIENDY_CONFIG || {};
+  const BASE = (CFG.BASE || "https://www.tiendy.com.py/api/storefront/v1").replace(/\/$/, "");
+  const PK = (CFG.PK || "").trim();
+  const on = /^pk_/.test(PK);
+
+  class TiendyError extends Error {
+    constructor(status, body){ super((body && (body.message || body.error)) || ("HTTP " + status)); this.status = status; this.code = body && body.code; this.body = body; }
+  }
+
+  async function req(path, opts){
+    opts = opts || {};
+    const headers = Object.assign({ "Authorization": "Bearer " + PK, "Accept": "application/json" }, opts.headers || {});
+    let body;
+    if (opts.body !== undefined){ headers["Content-Type"] = "application/json"; body = JSON.stringify(opts.body); }
+    let res, tries = 0;
+    for(;;){
+      res = await fetch(BASE + path, { method: opts.method || "GET", headers, body });
+      if (res.status === 429 && tries < 2){ tries++; const ra = Number(res.headers.get("Retry-After")) || 2; await new Promise(r => setTimeout(r, Math.min(10, ra) * 1000)); continue; }
+      break;
+    }
+    if (res.status === 204) return null;
+    let data = null; try { data = await res.json(); } catch(e) {}
+    if (!res.ok) throw new TiendyError(res.status, data);
+    return data;
+  }
+
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12));
+
+  /* ---------- catálogo ---------- */
+  async function allProducts(){
+    const out = []; let page = 1;
+    for(;;){
+      const r = await req("/products?limit=100&page=" + page);
+      const list = (r && (r.products || r.items || r.data)) || (Array.isArray(r) ? r : []);
+      out.push(...list);
+      const total = r && (r.total || (r.pagination && r.pagination.total));
+      if (!list.length || list.length < 100 || (total && out.length >= total)) break;
+      page++;
+    }
+    return out;
+  }
+  const detail = slug => req("/products/by-slug/" + encodeURIComponent(slug));
+
+  /* primera imagen de un producto, sea cual sea el nombre del campo */
+  function imageOf(p){
+    if (!p) return null;
+    const pick = v => !v ? null : typeof v === "string" ? v : (v.url || v.src || v.large || v.medium || null);
+    if (Array.isArray(p.images) && p.images.length) return pick(p.images[0]);
+    return pick(p.image) || pick(p.imageUrl) || pick(p.thumbnail) || pick(p.cover) || null;
+  }
+
+  /* ---------- carrito y pedido ---------- */
+  const quote = payload => req("/cart/quote", { method: "POST", body: payload });
+
+  let altchaLib = null;
+  async function solveAltcha(){
+    const challenge = await req("/altcha/challenge");
+    if (!altchaLib){
+      const [pow, pb] = await Promise.all([ import("https://cdn.jsdelivr.net/npm/altcha-lib@2.6.0/dist/esm/v2/pow.js"), import("https://cdn.jsdelivr.net/npm/altcha-lib@2.6.0/dist/esm/v2/algorithms/web/pbkdf2.js") ]);
+      altchaLib = { solveChallenge: pow.solveChallenge, deriveKey: pb.deriveKey };
+    }
+    const solution = await altchaLib.solveChallenge({ challenge, deriveKey: altchaLib.deriveKey, timeout: 90000 });
+    if (!solution) throw new TiendyError(403, { code: "ALTCHA_TIMEOUT", message: "No se pudo completar la verificación. Probá de nuevo." });
+    return { altchaChallenge: challenge, altchaSolution: solution };
+  }
+
+  /* Crea el pedido. Usa siempre la misma Idempotency-Key para reintentos del mismo pedido. */
+  async function checkout(body, key){
+    const headers = { "Idempotency-Key": key };
+    try {
+      return await req("/checkout", { method: "POST", body, headers });
+    } catch(e){
+      if (e.code === "ALTCHA_REQUIRED" || e.code === "ALTCHA_EXPIRED" || e.code === "ALTCHA_INVALID"){
+        const a = await solveAltcha();
+        return await req("/checkout", { method: "POST", body: Object.assign({}, body, a), headers });
+      }
+      throw e;
+    }
+  }
+  const order = token => req("/orders/" + encodeURIComponent(token));
+  const pay = (token, returnUrl) => req("/orders/" + encodeURIComponent(token) + "/pay", { method: "POST", body: { returnUrl } });
+
+  /* ---------- píxel de Meta (los precios los calcula el servidor) ---------- */
+  function cookie(n){ const m = document.cookie.match(new RegExp("(?:^|; )" + n + "=([^;]*)")); return m ? decodeURIComponent(m[1]) : undefined; }
+  function metaIds(){
+    let fbc = cookie("_fbc");
+    const fbclid = new URLSearchParams(location.search).get("fbclid");
+    if (!fbc && fbclid) fbc = "fb.1." + Date.now() + "." + fbclid;
+    return { fbp: cookie("_fbp"), fbc, fbclid: fbclid || undefined };
+  }
+  let queue = [], timer = null;
+  function event(name, contents, eventId, extra){
+    if (!on) return null;
+    const id = eventId || uuid(); const m = metaIds();
+    queue.push(Object.assign({ name, eventId: id, eventTime: Math.floor(Date.now()/1000), url: location.href, fbp: m.fbp, fbc: m.fbc, consent: "unknown", contents: contents || undefined }, extra || {}));
+    clearTimeout(timer); timer = setTimeout(flush, 400);
+    try { if (window.fbq) window.fbq("track", name, contents ? { contents, content_type: "product" } : {}, { eventID: id }); } catch(e) {}
+    return id;
+  }
+  function flush(){ const ev = queue.splice(0, 20); if (ev.length) req("/events", { method: "POST", body: { events: ev } }).catch(() => {}); if (queue.length) flush(); }
+  function metaContext(initiateId){ const m = metaIds(); return { eventSourceUrl: location.href, fbclid: m.fbclid, fbp: m.fbp, fbc: m.fbc, consent: "unknown", initiateCheckoutEventId: initiateId || undefined }; }
+  function loadPixel(store){
+    const px = store && store.metaPixel; const id = px && (px.pixelId || px.id || (typeof px === "string" ? px : null));
+    if (!id || window.fbq) return;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", String(id));
+  }
+
+  window.TD = { on, req, uuid, allProducts, detail, imageOf, quote, checkout, order, pay, event, metaContext, loadPixel, getStore: () => req("/store"), getCities: () => req("/geo/cities"), TiendyError };
+})();
+
+</script>
+<title>Beauty Clean Black Friday</title>
+</head>
+<body>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+<style>
+/* Layout: tienda de cosmética editorial con los colores y la tipografía de infinitelove-bcn (Inter, blanco y negro), header transparente sobre portada, carruseles horizontales, carrito lateral y checkout de pago al recibir */
+:root{
+  --bg:#FFFFFF; --soft:#F5F5F5; --ink:#000000; --text:rgba(0,0,0,.75); --title:#282828; --muted:rgba(0,0,0,.55); --strike:rgba(0,0,0,.31); --line:#E7E7E7;
+  --plum:#000000; --plum-d:#121212; --bf:#000000; --pine:#000000; --gold:#E7E7E7;
+  --display:"Inter","Helvetica Neue",Arial,sans-serif; --body:"Inter","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{color:var(--text);font-family:var(--body);font-size:16px;line-height:1.6;letter-spacing:.6px}
+h1,h2,h3,.logo,.price,.row{letter-spacing:normal}
+img{max-width:100%;display:block}
+button{font-family:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--plum);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:900px){.gut{padding-left:max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px))}}
+
+/* header */
+.hdr{position:absolute;top:0;left:0;right:0;z-index:30;color:#fff;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.hdr.solid{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);color:var(--ink);border-bottom:1px solid var(--line);padding-top:10px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--bg)}
+.pill{border:1px solid currentColor;border-radius:999px;overflow:hidden;white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:.04em;padding:5px 0}
+.pill .tr{display:inline-flex;gap:48px;padding-left:16px;animation:mq 30s linear infinite}
+@keyframes mq{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.pill .tr,.bigmq .tr{animation:none}}
+.nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:12px 0 10px;gap:10px}
+.nav .l,.nav .r{display:flex;gap:22px;align-items:center;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.02em}
+.nav .r{justify-content:flex-end}
+.nav a{text-decoration:none;cursor:pointer}
+.logo{font-family:var(--display);font-weight:600;color:inherit;font-size:clamp(20px,3vw,28px);letter-spacing:-.5px;text-decoration:none;white-space:nowrap}
+.logo span{font-weight:400}
+.cartbtn{position:relative;background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:6px;padding:6px;min-height:40px}
+.cartbtn b{min-width:20px;height:20px;border-radius:10px;background:currentColor;display:grid;place-items:center;font-size:11px}
+.cartbtn b i{font-style:normal;color:var(--bg)}
+.hdr:not(.solid) .cartbtn b i{color:#111}
+.show-m{display:none}
+@media (max-width:640px){.nav{grid-template-columns:1fr auto}.nav .l{display:none}.nav .logo{justify-self:start}.nav .r{gap:14px}.show-m{display:inline}.hide-m{display:none}}
+.li .th .ph span,.ups .th .ph span{display:none}
+
+/* portada */
+.hero{position:relative;min-height:min(92vh,760px);display:flex;align-items:flex-end;color:#fff;overflow:hidden;background:linear-gradient(160deg,#5E7286 0%,#9AA9B4 45%,#D8C3AE 100%)}
+.hero .bgimg{position:absolute;inset:0}
+.hero .bgimg img{width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.45),rgba(0,0,0,0) 60%)}
+.hero .in{position:relative;z-index:2;padding-block:140px 56px;max-width:720px;display:flex;flex-direction:column;gap:16px}
+.tagbf{align-self:flex-start;background:#fff;color:#000;font-weight:500;font-size:11px;letter-spacing:.1em;padding:6px 10px;border-radius:4px}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,7vw,72px);line-height:.93;letter-spacing:-.9px;color:#fff;margin:0;text-wrap:balance}
+.hero p{margin:0;font-size:19px;font-weight:300;letter-spacing:.1px;line-height:1.37;max-width:46ch;color:#fff}
+.btn-w{align-self:flex-start;background:#fff;color:#000;border:0;border-radius:29px;padding:15px 34px;font-weight:500;font-size:15px;letter-spacing:normal;cursor:pointer;min-height:48px;text-decoration:none}
+.btn-o{align-self:flex-start;background:transparent;color:#fff;border:1px solid #fff;border-radius:29px;padding:15px 40px;font-weight:500;font-size:15px;letter-spacing:normal;cursor:pointer;min-height:48px}
+.uphint{position:absolute;right:16px;bottom:16px;z-index:3}
+.up{background:#111;color:#fff;border:0;border-radius:8px;font-size:12px;font-weight:700;padding:8px 11px;cursor:pointer;min-height:34px}
+
+/* beneficios */
+.perks{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-block:28px;border-bottom:1px solid var(--line)}
+.perks div{display:flex;gap:10px;align-items:center;font-size:13px}
+.perks b{display:block;font-size:14px}
+.perks .ic{width:38px;height:38px;border-radius:50%;background:var(--soft);display:grid;place-items:center;flex:none}
+@media (max-width:760px){.perks{grid-template-columns:1fr 1fr}}
+
+/* categorías */
+.sec{padding-block:48px 8px}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:22px}
+.sh h2{font-family:var(--display);font-weight:500;font-size:clamp(28px,3.4vw,34px);letter-spacing:-.8px;line-height:1.2;color:var(--title);margin:0}
+.sh h2 sup{font-size:.35em;margin-left:4px;vertical-align:super}
+.sh a{font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;scrollbar-width:thin}
+.rail>*{scroll-snap-align:start}
+.cat{position:relative;aspect-ratio:3/4;border-radius:22px;overflow:hidden;color:#fff;cursor:pointer;border:0;padding:0;text-align:right}
+.cat .bg{position:absolute;inset:0}
+.cat .bg img{width:100%;height:100%;object-fit:cover}
+.cat::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,0) 35%,rgba(0,0,0,.3))}
+.cat h3{position:absolute;top:16px;right:20px;left:20px;margin:0;font-family:var(--display);font-weight:500;font-size:20px;letter-spacing:-.675px;z-index:2;color:#fff}
+.cat .gl{position:absolute;left:16px;right:16px;bottom:16px;z-index:2;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border-radius:999px;padding:12px;text-align:center;font-weight:500;letter-spacing:normal;font-size:15px}
+.cat .up{position:absolute;top:56px;right:16px;z-index:3}
+
+/* tarjeta producto */
+.pc{display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;background:none;border:0;padding:0;min-width:0}
+.pc .im{position:relative;aspect-ratio:1/1;border-radius:16px;background:var(--soft);overflow:hidden;display:grid;place-items:center}
+.pc .im img{width:100%;height:100%;object-fit:cover}
+.pc .badge{position:absolute;left:12px;bottom:12px;background:#fff;color:#000;font-size:10px;font-weight:400;letter-spacing:.04em;padding:5px 9px;border-radius:6px}
+.pc h3{margin:4px 0 0;font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:-.5px;color:#121212;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .br{font-size:14px;color:rgba(0,0,0,.45)}
+.price{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.price s{color:var(--strike);font-size:16px;letter-spacing:-.5px}
+.price b{font-weight:400;font-size:16px;color:#000;letter-spacing:-.5px}
+.ph{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted);font-size:12px;text-align:center;padding:12px}
+.cat .ph{position:absolute;inset:0;justify-content:center;color:rgba(255,255,255,.8)}
+
+.rail.prods{grid-auto-columns:minmax(220px,1fr)}
+@media (max-width:640px){.rail{grid-auto-columns:78%}.rail.prods{grid-auto-columns:62%}}
+
+/* marquee grande */
+.bigmq{overflow:hidden;white-space:nowrap;padding-block:52px;color:#E7E7E7;font-family:var(--display);font-size:clamp(40px,5vw,55px);letter-spacing:-2.2px}
+.bigmq .tr{display:inline-flex;gap:60px;animation:mq 40s linear infinite}
+.bigmq em{font-style:normal;color:#BDBDBD}
+
+/* banner */
+.banner{position:relative;margin-inline:max(0px,env(safe-area-inset-left,0px));border-radius:28px;overflow:hidden;min-height:520px;display:flex;align-items:center;color:#fff;background:linear-gradient(120deg,#5B3A2E,#9C6B55 60%,#D7B29A)}
+.banner.pine{background:linear-gradient(120deg,#2A2E33,#5B6670 55%,#A9B4BD)}
+.banner .bgimg{position:absolute;inset:0}.banner .bgimg img{width:100%;height:100%;object-fit:cover}
+.banner::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.4),rgba(0,0,0,0) 65%)}
+.banner .in{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px;max-width:560px;padding-block:48px}
+.banner h2{font-family:var(--display);font-weight:400;font-size:clamp(40px,6vw,68px);line-height:.94;letter-spacing:-1px;color:#fff;margin:0;text-wrap:balance}
+.banner p{margin:0;font-size:17px;font-weight:300;color:#fff}
+
+/* packs */
+.packsec{background:var(--soft);border-radius:28px;padding-block:40px}
+.howpk{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.howpk div{background:#fff;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:6px}
+.howpk .n{font-family:var(--display);font-size:40px;font-weight:400;color:#000;letter-spacing:-.03em}
+.howpk .t{font-weight:500;color:#000}
+.howpk p{margin:0;color:var(--muted);font-size:14px}
+@media (max-width:760px){.howpk{grid-template-columns:1fr}}
+
+/* catálogo */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:38px}
+.chips button[aria-pressed="true"]{background:#111;color:#fff;border-color:#111}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 20px}
+@media (max-width:980px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:640px){.grid{grid-template-columns:1fr 1fr;gap:22px 12px}.pc h3{font-size:15px}}
+
+/* producto */
+.pp{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:48px;padding-block:28px 40px}
+@media (max-width:860px){.pp{grid-template-columns:1fr;gap:22px}}
+.pgal{display:flex;flex-direction:column;gap:10px}
+.pgal .main{position:relative;aspect-ratio:1/1;border-radius:20px;background:var(--soft);overflow:hidden;display:grid;place-items:center}
+.pgal .main img{width:100%;height:100%;object-fit:cover}
+.pgal .up{position:absolute;right:12px;bottom:12px}
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:6px}
+.crumbs a{cursor:pointer;text-decoration:underline}
+.pinfo{display:flex;flex-direction:column;gap:14px}
+.pinfo h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,4vw,40px);line-height:1.1;letter-spacing:-.6px;color:#000;margin:0}
+.pinfo .lead{margin:0;color:var(--text)}
+.pinfo .price b{font-size:24px}
+.pinfo .price .off{background:#fff;color:#000;border:1px solid #000;font-size:11px;font-weight:400;padding:2px 8px;border-radius:5px}
+.tones{display:flex;gap:8px;flex-wrap:wrap}
+.tones button{border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:#fff;cursor:pointer;font-weight:600;font-size:13px;min-height:38px}
+.tones button[aria-pressed="true"]{border-color:#111;box-shadow:0 0 0 1px #111 inset}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{position:relative;display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:14px;background:#fff;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.opt[aria-checked="true"]{border-color:#000;background:#F7F7F7;box-shadow:0 0 0 1px var(--plum) inset}
+.opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid #999;flex:none;display:grid;place-items:center}
+.opt[aria-checked="true"] .dot{border-color:var(--plum)}
+.opt[aria-checked="true"] .dot::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--plum)}
+.opt .nm{font-weight:500;color:#000}
+.opt,.opts,.trust,.ups,.li,.df,.sumbox,.f,.pay,.bump,.tones,.chips,.opt .tg{letter-spacing:normal}
+.opt .sb{font-size:12.5px;color:var(--muted)}
+.opt .pr{margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.opt .pr b{display:block;font-size:16px}
+.opt .pr span{font-size:12px;color:rgba(0,0,0,.55);font-weight:500}
+.opt .tg{position:absolute;top:-10px;right:14px;background:var(--plum);color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:5px}
+.opt .tg.gold{background:#fff;color:#000;border:1px solid #000}
+.addbtn{width:100%;background:#000;color:#fff;border:0;border-radius:29px;padding:16px;font-weight:500;font-size:15px;letter-spacing:.3px;cursor:pointer;min-height:54px}
+.addbtn:hover{background:#000}
+.trust{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+.trust div{background:var(--soft);border-radius:10px;padding:10px 12px}
+.acc details{border-top:1px solid var(--line);padding:0}
+.acc details:last-child{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;padding:14px 0;font-weight:600}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";font-size:18px}
+.acc details[open] summary::after{content:"−"}
+.acc p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.mbar{display:none}
+@media (max-width:860px){.mbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:25;background:rgba(255,255,255,.97);border-top:1px solid var(--line);padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} body.on-product{padding-bottom:84px}}
+
+/* carrito */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.4)}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:51;width:min(420px,100%);background:#fff;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-family:var(--display);font-weight:600;font-size:20px}
+.x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px}
+.db{flex:1;overflow:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.gift{background:#F5F5F5;border-radius:12px;padding:10px 12px;font-size:13px}
+.gift .bar{height:6px;background:#fff;border-radius:6px;margin-top:6px;overflow:hidden}
+.gift .bar i{display:block;height:100%;background:var(--plum);border-radius:6px}
+.li{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start}
+.li .th{width:64px;height:64px;border-radius:10px;background:var(--soft);overflow:hidden;display:grid;place-items:center;font-size:10px;color:var(--muted);text-align:center}
+.li .th img{width:100%;height:100%;object-fit:cover}
+.li b{font-size:14px;display:block;line-height:1.3}
+.li .sb{font-size:12px;color:var(--muted)}
+.li .rm{background:none;border:0;padding:4px 0;font-size:12px;text-decoration:underline;color:var(--muted);cursor:pointer}
+.ups{border:1px dashed #000;border-radius:14px;padding:12px;display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center}
+.ups .th{width:56px;height:56px;border-radius:10px;background:var(--soft);overflow:hidden;display:grid;place-items:center;font-size:10px;color:var(--muted)}
+.ups .th img{width:100%;height:100%;object-fit:cover}
+.ups .k{font-size:10px;font-weight:500;letter-spacing:.1em;color:#000}
+.ups b{display:block;font-size:13.5px;line-height:1.3}
+.ups .sb{display:block;font-size:12.5px;color:var(--muted)}
+.ups .add{background:#000;color:#fff;border:0;border-radius:29px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;min-height:38px}
+.df{border-top:1px solid var(--line);padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+.row.t{font-weight:700;font-size:18px}
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+
+/* checkout */
+.co{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:40px;padding-block:28px 60px}
+@media (max-width:860px){.co{grid-template-columns:1fr;gap:22px}}
+.co h1{font-family:var(--display);font-weight:500;font-size:34px;letter-spacing:-.8px;color:var(--title);margin:0 0 6px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:13px;font-weight:600}
+.f input,.f select{font:inherit;font-size:16px;border:1.5px solid var(--line);border-radius:10px;padding:12px;width:100%;background:#fff;color:var(--ink)}
+.f.bad input,.f.bad select{border-color:#C62828}
+.f .err{font-size:12px;color:#C62828;font-weight:500}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:480px){.g2{grid-template-columns:1fr}}
+.pay{display:flex;gap:10px;align-items:center;border:1px solid #000;background:#fff;border-radius:12px;padding:12px;font-weight:600}
+.bump{display:flex;gap:12px;align-items:flex-start;border:1px dashed #000;background:#F7F7F7;border-radius:12px;padding:12px;cursor:pointer}
+.bump input{width:20px;height:20px;accent-color:var(--bf);margin-top:2px;flex:none}
+.bump b{display:block}
+.bump span{font-size:13px;color:var(--text)}
+.sumbox{background:var(--soft);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px;align-self:start}
+.note{font-size:12px;color:var(--muted)}
+.thanks{max-width:560px;margin:0 auto;text-align:center;padding-block:60px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.thanks h1{font-family:var(--display);font-weight:400;font-size:40px;letter-spacing:-.6px;color:#000;margin:0}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:60;background:#111;color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600}
+
+footer{margin-top:56px;background:linear-gradient(160deg,#1A1716,#3A302B);color:rgba(255,255,255,.75);border-radius:28px 28px 0 0;padding-block:48px calc(36px + env(safe-area-inset-bottom,0px))}
+.fg{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:28px}
+@media (max-width:760px){.fg{grid-template-columns:1fr}}
+footer h4{margin:0 0 10px;font-family:var(--display);font-size:17px;color:#fff}
+footer p,footer li{font-size:14px;margin:4px 0}
+footer ul{list-style:none;margin:0;padding:0}
+footer .logo{color:#fff;font-size:30px}
+.ed{border:2px dashed #C77B1C;background:#FFF6EA;color:#6A3F08;border-radius:12px;padding:12px 14px;font-size:13px;margin-top:20px}
+
+.checks{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;letter-spacing:normal}
+.checks li{display:flex;gap:10px;font-size:14.5px;color:var(--text)}
+.checks .ck{flex:none;width:20px;height:20px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-size:11px;margin-top:2px}
+.steps4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;letter-spacing:normal}
+.steps4>div{background:var(--soft);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:6px}
+.steps4 .n{width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-size:14px}
+.steps4 b{color:#000;font-weight:500}.steps4 p{margin:0;font-size:14px}
+@media (max-width:860px){.steps4{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.steps4{grid-template-columns:1fr}}
+.ingr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 24px;letter-spacing:normal}
+.ingr>div{border-top:1px solid #000;padding:14px 0}
+.ingr b{display:block;font-size:20px;font-weight:400;color:#000;letter-spacing:-.4px}.ingr p{margin:4px 0 0;font-size:14px}
+.rail.bens{grid-auto-columns:minmax(240px,1fr)}
+.ben{background:var(--soft);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:6px;letter-spacing:normal;min-height:150px}
+.ben b{font-weight:500;color:#000;font-size:17px}.ben p{margin:0;font-size:14px}
+.acc.wide{max-width:820px;letter-spacing:normal}
+.payinfo{background:#000;color:rgba(255,255,255,.8);border-radius:28px;padding:32px;display:flex;flex-direction:column;gap:18px;letter-spacing:normal}
+.payinfo h2{margin:0;color:#fff;font-weight:400;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.8px}
+.pcols{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pcols b{color:#fff;font-weight:500}.pcols p{margin:4px 0 0;font-size:14px}
+.payinfo .note{color:rgba(255,255,255,.6)}
+@media (max-width:760px){.pcols{grid-template-columns:1fr}}
+.paysel{display:flex;flex-direction:column;gap:8px}
+.paysel label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;letter-spacing:normal}
+.paysel input{accent-color:#000;width:18px;height:18px;margin-top:2px}
+.paysel b{display:block;color:#000;font-weight:500}.paysel span{font-size:13px}
+
+.rinfo{display:flex;flex-direction:column;gap:10px;margin-top:10px;letter-spacing:normal}
+.rinfo h2{margin:10px 0 4px;font-weight:500;font-size:26px;letter-spacing:-.5px;color:#111}
+.rinfo h3{margin:16px 0 0;font-weight:500;font-size:22px;color:#111}
+.rtile{display:flex;gap:12px;background:var(--soft);border-radius:16px;padding:16px}
+.ric{flex:none;width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-size:14px}
+.rtile b{display:block;color:#000;font-weight:600;font-size:15px}
+.rtile p{margin:2px 0 0;font-size:16px;line-height:1.5;color:#333}
+.rsub{margin:0;color:#555;font-size:15px;letter-spacing:normal}.rsub.big{font-size:17px;margin:-10px 0 18px}
+.rcard{display:grid;grid-template-columns:110px 1fr;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.rth{background:var(--soft);min-height:110px;display:grid;place-items:center;overflow:hidden}.rth img{width:100%;height:100%;object-fit:cover}
+.rtx{padding:12px;display:flex;flex-direction:column;gap:5px}
+.rname{color:#000;font-weight:500;font-size:16px;text-decoration:none}
+.rwhy{font-size:14.5px;color:#555;line-height:1.4}.rprice{font-size:16px;color:#000}
+.rtx .addbtn{min-height:46px;font-size:15px;padding:10px}
+.rtabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;letter-spacing:normal}
+.rtabs button{flex:none;border:1px solid #000;background:#fff;color:#000;border-radius:999px;padding:11px 18px;font:inherit;font-size:15px;cursor:pointer;min-height:44px}
+.rtabs button[aria-selected="true"]{background:#000;color:#fff}
+.rpanel{background:var(--soft);border-radius:24px;padding:22px;letter-spacing:normal}
+.rintro{margin:0 0 14px;font-size:17px;color:#222}
+.rsteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.rstep{background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.rstep .rth{aspect-ratio:1/1}
+.rn{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#666}
+.rwhen{font-size:14.5px;color:#000;background:var(--soft);border-radius:10px;padding:6px 10px;line-height:1.4}
+.rcta{margin-top:16px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;background:#000;color:#fff;border-radius:18px;padding:16px 18px}
+.rcta b{display:block;font-size:22px;font-weight:500;color:#fff}.rcta .k{font-size:12px;opacity:.75;letter-spacing:.08em}
+.rcta .btn-w{align-self:auto;min-height:52px;font-size:16px}
+@media (max-width:640px){.rpanel{padding:14px}.rstep{flex-direction:row}.rstep .rth{width:96px;flex:none;aspect-ratio:auto}.rcta .btn-w{width:100%}}
+.upsell{background:#000;color:#fff;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;letter-spacing:normal}
+.upsell .k{font-size:11px;letter-spacing:.12em;opacity:.8}.upsell b{font-size:16px;font-weight:500;color:#fff}.upsell span{font-size:13.5px;opacity:.9}
+.addbtn.light{background:#fff;color:#000;align-self:flex-start;width:auto;padding:12px 18px;min-height:44px}
+.ups-wrap{border:1px dashed #000;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;letter-spacing:normal}
+.ups-wrap .k{font-size:11px;letter-spacing:.12em}
+.ups-wrap .ups{border:0;padding:0}
+.dsell{border:1px solid #000;background:var(--soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;letter-spacing:normal}
+.dsell b{color:#000;font-weight:500}.dsell .addbtn{width:auto;align-self:flex-start;padding:12px 18px;min-height:44px}
+</style>
+
+<header class="hdr gut" id="hdr">
+  <div class="pill" aria-hidden="true"><div class="tr" id="pillTr"></div></div>
+  <nav class="nav" aria-label="Principal">
+    <div class="l"><a data-go="inicio">Inicio</a><a data-go="productos">Productos</a><a data-go="packs" class="hide-m">Packs</a></div>
+    <a class="logo" data-go="inicio">Beauty <span>Clean</span></a>
+    <div class="r"><a data-go="productos" class="show-m">Productos</a>
+      <button class="cartbtn" type="button" id="cartBtn" aria-label="Abrir carrito"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><b><i id="cartCount">0</i></b></button>
+    </div>
+  </nav>
+</header>
+
+<main id="app"></main>
+
+<footer class="gut">
+  <div class="fg">
+    <div><div class="logo">Beauty <span>Clean</span></div><p style="margin-top:12px;max-width:38ch">Tienda online de belleza y cuidado personal en Paraguay. Sin local de venta al público.</p><p>Atención por formulario en días hábiles: respondemos normalmente dentro de 24 horas hábiles.</p></div>
+    <div><h4>Envíos y pagos</h4><ul><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Contra entrega o transferencia</li></ul></div>
+    <div><h4>Cambios y devoluciones</h4><ul><li>Hasta 30 días, producto sin uso y cerrado</li><li>Dañado, equivocado o incompleto: avisanos en 48 h</li><li>Reembolsos en 7 a 10 días hábiles</li><li>beautyclean.store</li></ul></div>
+  </div>
+  <p style="margin-top:20px;font-size:12px;opacity:.7">Nunca te pediremos contraseñas, códigos de seguridad ni datos completos de tarjetas.</p>
+  <p style="margin-top:8px;font-size:12px;opacity:.75">© 2026 Beauty Clean · Paraguay</p>
+</footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-labelledby="dT"></aside>
+<div class="mbar" id="mbar" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+/* ---------- datos reales de beautyclean.store ---------- */
+const P=[
+ {id:"retinol",name:"Sérum facial reafirmante",short:"Sérum reafirmante retinol",cat:"antiedad",price:169000,cmp:295000,
+  lead:"¿Te preocupan las líneas, los poros visibles o la textura irregular? Este sérum con retinol ayuda a mejorar progresivamente la apariencia de firmeza y suavidad.",
+  pack2:"30% de descuento + 1 Celimax Retinal 15 ml de regalo",
+  checks:["Ayuda a reducir la apariencia de líneas de expresión y arrugas finas.","Mejora la firmeza y elasticidad para una piel de aspecto más joven.","Con retinol y péptidos que ayudan a mejorar la textura y luminosidad de la piel."],
+  steps:[["Limpiá y secá tu rostro","Comenzá con la piel completamente limpia y seca."],["Aplicá una pequeña cantidad","Sobre las áreas deseadas, evitando el contacto directo con los ojos."],["Distribuí suavemente","Masajeá con movimientos suaves hasta que se absorba de manera uniforme."],["Finalizá con tu hidratante","Después aplicá tu crema habitual. A la mañana siguiente usá protector solar."]],
+  bens:[["Suaviza líneas visibles","Su fórmula con retinol ayuda a mejorar progresivamente la apariencia de las líneas finas y las arrugas visibles."],["Mejora la apariencia de los poros","Ayuda a refinar visualmente los poros dilatados y las zonas con textura irregular."],["Piel más firme y tersa","Su combinación de retinol y péptidos complementa el cuidado de la elasticidad y la firmeza visible."],["Tecnología A-Shot™","Favorece la distribución de los ingredientes sobre la superficie de la piel."]],
+  faq:[["¿Cuándo comenzaré a ver resultados?","Desde las primeras aplicaciones la piel puede sentirse más suave y confortable. Con el uso constante ayuda a mejorar progresivamente la apariencia de líneas finas, firmeza y textura."],["¿Con qué frecuencia debo utilizarlo?","Si estás comenzando con retinol, aplicalo de noche 2 o 3 veces por semana y aumentá la frecuencia gradualmente según la tolerancia de tu piel."],["¿Es adecuado para piel sensible?","Se recomienda comenzar de forma gradual y probar primero en una zona pequeña. Si aparece irritación intensa o persistente, suspendé su uso."],["¿Puedo utilizarlo junto con otros productos?","Sí, con limpiadores suaves, sérums hidratantes y cremas. Evitá combinarlo en la misma rutina con otros retinoides o exfoliantes fuertes."],["¿Es normal sentir un ligero hormigueo?","Al comenzar puede notarse una sensación ligera y temporal. No debe confundirse con ardor intenso, dolor o irritación persistente."],["¿Debo usar protector solar?","Sí. Al incorporar retinol es importante usar protector solar durante el día."],["¿Es el mismo producto que Celimax Retinal?","No. El producto principal es el sérum de retinol. La opción de 2 unidades incluye además 1 Celimax Retinal Shot de 15 ml de regalo; son presentaciones diferentes."]],
+  note:"No es un efecto tensor instantáneo. La respuesta depende de tu piel y de la constancia; no prometemos borrar arrugas ni un plazo fijo."},
+ {id:"althea147",name:"Dr. Althea 147 · Crema facial",short:"Crema Dr. Althea 147",cat:"hidratacion",price:169000,cmp:299000,
+  lead:"¿Tu piel se siente seca, tirante o sensible? Dr. Althea 147 aporta hidratación y confort para ayudarla a lucir más suave y equilibrada.",
+  checks:["Hidratación multicapa con 147 tipos de ácido hialurónico para una piel hidratada, suave y confortable por más tiempo.","Enriquecida con guayazuleno de efecto calmante, que ayuda a aliviar la sensación de irritación y enrojecimiento.","Textura gel-crema ligera y de rápida absorción, sin sensación pesada ni poros obstruidos."],
+  steps:[["Aplicá sobre la piel limpia","Después de limpiar tu rostro, aplicá una pequeña cantidad sobre la piel limpia y seca."],["Distribuí uniformemente","Extendé suavemente sobre rostro y cuello."],["Masajeá suavemente","Hasta que la textura gel-crema se absorba."],["Usala mañana y noche","Incorporala a tu rutina diaria para mantener la piel hidratada y confortable."]],
+  bens:[["147 tipos de ácido hialurónico","Hidratación multicapa: distintos pesos moleculares ayudan a mantener la humedad en distintos niveles de la piel."],["Guayazuleno calmante","Ayuda a aliviar la sensación de irritación, sensibilidad y enrojecimiento."],["Refuerza la barrera cutánea","Ayuda a mantener un nivel adecuado de hidratación frente a factores externos."],["Ideal para uso diario","Apta para todo tipo de piel, especialmente sensible, reactiva o deshidratada."]],
+  faq:[["¿Puedo usarla todos los días?","Sí. Su textura gel-crema está pensada para el uso diario, de mañana y de noche."],["¿Es adecuada para piel sensible?","Sí. Está pensada para ayudar a calmar la piel sensible, reactiva o con tendencia al enrojecimiento."],["¿Deja sensación grasosa o pesada?","No. Es ligera y de rápida absorción."],["¿Ayuda a calmar el enrojecimiento?","Sí. Contiene guayazuleno, reconocido por sus propiedades calmantes."]]},
+ {id:"lipshot",name:"Lip Shot · Cuidado labial",short:"Labial para rellenar labios",cat:"ojoslabios",price:149000,cmp:249000,
+  lead:"¿Tus labios se sienten secos, ásperos o agrietados? Lip Shot aporta hidratación y ayuda a dejarlos visiblemente más suaves, cuidados y confortables.",
+  checks:["Hidratación intensa para labios secos y con sensación de tirantez.","Textura nutritiva que suaviza la superficie de los labios.","Ideal antes del labial o de noche, antes de dormir."],
+  steps:[["Labios limpios","Partí de los labios limpios y secos."],["Aplicá una pequeña cantidad","Directamente sobre los labios."],["Distribuí de forma uniforme","Cubrí todo el labio con una capa fina."],["De día o de noche","Usalo antes del maquillaje o antes de dormir."]],
+  bens:[["Hidratación intensa","Aporta hidratación a los labios secos y mejora su confort."],["Labios más suaves","Ayuda a mejorar progresivamente su apariencia áspera o reseca."],["Ideal para usar de noche","Aplicalo antes de dormir para mantenerlos hidratados durante varias horas."],["Prepara tus labios","Suaviza e hidrata antes del labial o la tinta de labios."]],
+  faq:[["¿Puedo usarlo todos los días?","Sí. Podés incorporarlo a tu rutina diaria."],["¿Ayuda con los labios secos y agrietados?","Sí. Aporta hidratación y mejora la apariencia de los labios secos o ásperos."],["¿Puedo usarlo antes del labial?","Sí. Una capa ligera antes del maquillaje ayuda a suavizar e hidratar."],["¿Qué producto recibiré?","El Lip Shot que se muestra en la galería, en la cantidad de la opción elegida. Seguí las instrucciones y advertencias del envase."]]},
+ {id:"ojos",name:"Crema para el contorno de ojos",short:"Contorno de ojos antiarrugas",cat:"ojoslabios",price:149000,cmp:285000,
+  lead:"¿Las bolsas, líneas y el aspecto cansado apagan tu mirada? Esta crema ayuda a alisar visualmente el contorno con un efecto tensor temporal.",
+  checks:["Ayuda a suavizar visiblemente líneas y signos de cansancio.","Efecto tensor temporal para una piel que luce más firme y lisa.","Textura ligera, fácil de sumar antes del maquillaje."],
+  steps:[["Limpiá y secá bien la piel","La zona debe estar limpia, seca y libre de aceites o cremas."],["Aplicá una pequeña cantidad","Solo una capa fina en la zona deseada."],["Distribuí suavemente","Extendé de forma uniforme, sin exceso de producto."],["Dejá actuar unos minutos","Mantené el rostro relajado mientras el producto se seca."]],
+  bens:[["Efecto tensor visible","Ayuda a que la piel luzca temporalmente más firme y tersa."],["Suaviza líneas finas","Reduce temporalmente la apariencia de líneas y pequeñas arrugas."],["Mejora el aspecto de bolsas","Las zonas con apariencia hinchada lucen más descansadas."],["Textura ligera","Se aplica en capa fina sin sensación pesada."]],
+  faq:[["¿Cuándo puedo notar el efecto?","Está diseñado para un efecto tensor temporal poco después de la aplicación."],["¿Cuánto dura el efecto tensor?","Es temporal y varía según el tipo de piel, la cantidad aplicada y los productos usados antes o después."],["¿Puedo usar maquillaje después?","Sí, una vez que el producto se secó por completo. Aplicá lo siguiente con suavidad."],["¿Es apto para distintos tipos de piel?","Sí. Como todo producto para el contorno de ojos, suspendé su uso si aparece irritación."]]},
+ {id:"beevenom",name:"Bee Venom · Crema facial 20 g",short:"OUHOE Bee Venom · 20 g",cat:"antiedad",price:159000,cmp:295000,
+  lead:"¿Notás líneas, pérdida de firmeza o una piel apagada? Bee Venom aporta hidratación y ayuda a mejorar la apariencia de suavidad, firmeza y luminosidad.",
+  checks:["Ayuda a reducir la apariencia de líneas de expresión y arrugas finas.","Mejora la firmeza y elasticidad para una piel de aspecto más joven.","Con veneno de abeja y ácido hialurónico para una piel más hidratada, suave y luminosa."],
+  steps:[["Limpiá y secá tu rostro","Para una aplicación uniforme de la crema."],["Aplicá una pequeña cantidad","Distribuí suavemente, evitando el contacto con los ojos."],["Masajeá hasta su absorción","Con movimientos suaves y ascendentes, sobre todo en las líneas de expresión."],["Usala de forma constante","Si la usás de día, complementá con protector solar."]],
+  ing:[["Veneno de abeja","Ingrediente protagonista, usado en el cuidado antiedad para la apariencia de firmeza y líneas de expresión."],["Ácido hialurónico","Mantiene la piel hidratada, suave y flexible."],["Ingredientes emolientes","Suavizan la superficie y reducen la sensación de sequedad."]],
+  bens:[["Suaviza líneas visibles","Ayuda a mejorar progresivamente la apariencia de líneas de expresión y arrugas finas."],["Firmeza y elasticidad","Favorece una apariencia más firme, uniforme y revitalizada."],["Hidratación y suavidad","Mantiene la piel confortable y flexible durante el día."],["Textura ligera","Se distribuye fácil y deja una sensación cómoda."]],
+  faq:[["¿Cuándo comenzaré a notar resultados?","Desde las primeras aplicaciones la piel puede sentirse más hidratada y suave. Con uso constante mejora la apariencia de líneas y firmeza."],["¿Es apta para todo tipo de piel?","Si tenés piel muy sensible o antecedentes de alergia a productos derivados de las abejas, hacé primero una prueba en una zona pequeña o consultá a un profesional."],["¿Puedo usarla durante el día?","Sí, de día o de noche. De día finalizá con protector solar."],["¿Deja sensación grasosa?","Su textura es ligera y de fácil absorción."]],
+  note:"Los resultados pueden variar según el tipo de piel, la frecuencia de aplicación y la constancia de uso."},
+ {id:"celimax",name:"Celimax · Sérum facial, 15 ml",short:"Celimax Retinal Shot · 15 ml",cat:"antiedad",price:159000,cmp:265000,
+  lead:"¿Notás líneas finas, textura irregular o pérdida de luminosidad? Celimax Retinal Shot ayuda a renovar visualmente la piel y mejorar su apariencia con uso constante. Presentación: 15 ml.",
+  checks:["Ayuda a reducir la apariencia de líneas de expresión y arrugas finas.","Mejora la firmeza y elasticidad para una piel de aspecto más joven.","Con retinal y péptidos que ayudan a mejorar la textura y luminosidad de la piel."],
+  steps:[["Limpiá y secá tu rostro","Favorece una mejor absorción del retinal y los péptidos."],["Aplicá una pequeña cantidad","Evitando el contacto con los ojos, distribuí de manera uniforme."],["Masajeá hasta su absorción","Movimientos suaves para que actúe durante la noche."],["Finalizá con tu hidratante","Durante el día usá protector solar."]],
+  ing:[["0,1% retinal liposomado","Forma avanzada de vitamina A para la apariencia de líneas, arrugas y textura irregular."],["3% Matrixyl®","Complejo de péptidos que complementa el cuidado de la elasticidad."],["1% pantenol","Hidratación, confort y cuidado de la barrera cutánea."]],
+  bens:[["Suaviza líneas visibles","Con 0,1% de retinal mejora progresivamente la apariencia de líneas finas."],["Mejora la apariencia de los poros","Refina visualmente poros dilatados y textura irregular."],["Piel más firme y tersa","Retinal y Matrixyl® para la elasticidad y firmeza visible."],["Tecnología A-Shot™","Micropartículas que favorecen la distribución; puede sentirse un hormigueo ligero y temporal."]],
+  faq:[["¿Con qué frecuencia debo utilizarlo?","Si estás comenzando, aplicalo de noche dos veces por semana y aumentá gradualmente según la tolerancia."],["¿Es adecuado para piel sensible?","El retinal es un activo potente. Probá en una zona pequeña y comenzá con una aplicación semanal. Suspendé si aparece irritación persistente."],["¿Es normal sentir hormigueo?","Puede sentirse un hormigueo ligero y temporal por la tecnología A-Shot™; no debe confundirse con ardor fuerte o dolor."],["¿Debo usar protector solar?","Sí, durante el día y evitando la exposición solar excesiva."]]},
+ {id:"althea345",name:"Dr. Althea 345 · Crema hidratante",short:"Dr. Althea Crema de Alivio 345",cat:"hidratacion",price:169000,cmp:285000,
+  lead:"¿Tu piel luce irritada, sensible o con textura desigual? Dr. Althea 345 hidrata y ayuda a reforzar la sensación de confort de la barrera cutánea.",
+  checks:["Ayuda a reducir la apariencia de manchas, rojeces e imperfecciones para una piel más uniforme.","Con niacinamida, ceramidas y extractos botánicos para fortalecer la barrera natural de la piel.","Calma e hidrata intensamente mientras mejora la textura y luminosidad de la piel sensible."],
+  steps:[["Limpiá y secá tu piel","Con el rostro limpio, los activos se absorben mejor."],["Aplicá una cantidad adecuada","Capa uniforme, sobre todo en zonas con sequedad o rojeces."],["Masajeá hasta su absorción","Movimientos suaves y circulares."],["Usala todos los días","Mañana y noche para fortalecer la barrera cutánea."]],
+  ing:[["Niacinamida","Mejora visiblemente manchas, marcas post-acné y tono desigual."],["Ceramidas","Refuerzan la barrera cutánea y reducen la pérdida de hidratación."],["Ácido hialurónico","Retiene la hidratación para una piel más suave."],["Centella asiática","Ayuda a reducir la apariencia de rojeces."]],
+  bens:[["Calma la piel sensible","Ingredientes calmantes para pieles reactivas o irritadas."],["Tono más uniforme","Mejora la apariencia de manchas e imperfecciones."],["Barrera fortalecida","Ceramidas para proteger frente a agresores externos."],["Uso diario","Libre de fragancias y colorantes artificiales."]],
+  faq:[["¿Cuándo comenzaré a notar resultados?","Muchas personas notan la piel más hidratada y calmada desde las primeras aplicaciones; con uso continuo mejora la apariencia de manchas y rojeces."],["¿Es adecuada para todo tipo de piel?","Sí, especialmente para pieles sensibles, secas, mixtas y normales."],["¿Con qué frecuencia puedo usarla?","A diario, de mañana y de noche."],["¿Puedo combinarla con otros productos?","Sí, con sérums, tónicos, protector solar y otros tratamientos hidratantes."]]},
+ {id:"manchas",name:"Crema facial para tono desigual",short:"Crema para manchas y tono desigual",cat:"hidratacion",price:149000,cmp:285000,
+  lead:"¿Te incomodan las manchas, el tono desigual o la piel opaca? Esta crema hidrata y ayuda a mejorar progresivamente la uniformidad y luminosidad del rostro.",
+  checks:["Ayuda a reducir la apariencia de manchas oscuras y unificar el tono de la piel.","Con Arbutina 7%, Ácido Tranexámico 4%, Niacinamida y Glutatión.","Textura ligera de rápida absorción, sin sensación grasosa."],
+  steps:[["Limpiá y secá tu piel","Con tu limpiador habitual, para una mejor absorción."],["Aplicá una pequeña cantidad","Sobre las zonas con manchas o en todo el rostro."],["Masajeá hasta absorber","Movimientos suaves y circulares."],["Usala diariamente","Mañana y noche. De día, complementá con protector solar."]],
+  ing:[["Arbutina 7%","Disminuye visualmente la apariencia de manchas oscuras."],["Ácido Tranexámico 4%","Mejora la apariencia de manchas, marcas de acné y tono desigual."],["Niacinamida","Aporta luminosidad a la piel apagada."],["Glutatión","Antioxidante para una piel de apariencia saludable."]],
+  bens:[["Tono más uniforme","Favorece una piel más pareja y luminosa con uso constante."],["Menos manchas visibles","Arbutina y ácido tranexámico trabajan juntos."],["Más luminosidad","Niacinamida y glutatión contra la piel opaca."],["Textura ligera","Hidrata sin dejar sensación pesada ni pegajosa."]],
+  faq:[["¿Cuándo comenzaré a notar resultados?","Muchas personas notan la piel más luminosa desde las primeras semanas; varía según cada persona y la constancia."],["¿Es adecuada para todo tipo de piel?","Sí, para pieles secas, mixtas y grasas."],["¿Puedo usarla con otros productos?","Sí, con limpiadores, sérums, niacinamida, vitamina C y protector solar."],["¿Deja sensación grasosa?","No. Es ligera y de rápida absorción."]]},
+ {id:"pdrn",name:"Medicube PDRN · Sérum facial",short:"Medicube PDRN",cat:"hidratacion",price:169000,cmp:310000,
+  lead:"¿Sentís la piel apagada, deshidratada o con menor firmeza? Este sérum ligero aporta hidratación y ayuda a mejorar la apariencia de luminosidad y elasticidad.",
+  checks:["Ayuda a mejorar la firmeza y elasticidad de la piel.","Favorece una piel más luminosa, hidratada y uniforme.","Textura ligera de rápida absorción y sin sensación pegajosa."],
+  steps:[["Limpiá y prepará la piel","Lavá el rostro con un limpiador suave y secá delicadamente."],["Aplicá de 2 a 3 gotas","Sobre rostro y cuello, sin friccionar."],["Masajeá y dejá absorber","Pequeños toques con las manos para un glow uniforme."],["Usalo a diario","Mañana y noche, antes de la crema hidratante."]],
+  ing:[["PDRN de ADN de salmón","Mejora la hidratación y la barrera de humedad."],["Complejo de 5 péptidos","Para la apariencia de firmeza y elasticidad."],["Niacinamida","Mejora visualmente el tono desigual y aporta luminosidad."]],
+  bens:[["Hidratación","Piel más suave y uniforme con uso constante."],["Firmeza visible","Aspecto más terso y revitalizado."],["Glow natural","Luminosidad saludable."],["Para día y noche","Apto para todo tipo de piel."]],
+  faq:[["¿Cuándo comenzaré a ver resultados?","Muchas personas notan la piel más hidratada desde las primeras aplicaciones; firmeza y textura, con uso constante durante semanas."],["¿Es apto para piel sensible o grasa?","Sí, para pieles sensibles, mixtas, grasas, secas y maduras."],["¿Puedo usarlo con otros productos?","Sí, con hidratantes, vitamina C y protector solar."],["¿Es pegajoso?","No. Textura ligera de rápida absorción."]]},
+ {id:"pestanas",name:"Pestañas magnéticas",short:"Pestañas magnéticas",cat:"maquillaje",price:139000,cmp:279000,
+  lead:"¿Te cuesta aplicar pestañas con pegamento? Realzá tu mirada con un sistema magnético práctico, reutilizable y fácil de colocar.",
+  checks:["Sin pegamento: ideales para ojos sensibles.","Reutilizables más de 120 veces.","Aspecto natural y aplicación en segundos con el aplicador magnético."],
+  steps:[["Separá","Separá las pestañas magnéticas."],["Colocá","Ponelas sobre el aplicador magnético incluido."],["Hacé clic","Acercá el aplicador al párpado y ¡clic!"],["Retirá y guardá","Se quitan fácil y se vuelven a usar."]],
+  bens:[["Aplicar en segundos","Sin pegamento ni suciedad."],["Cierre magnético seguro","Microimanes de 5 bandas que las mantienen en su lugar."],["Ligeras como una pluma","Fibras ultra suaves para una sensación natural."],["Para todos los días","Solas para un look natural o con delineador para más intensidad."]],
+  faq:[["¿Cómo se usan?","Separá las pestañas, colocalas en el aplicador magnético y hacé clic sobre el párpado. Toma unos segundos."],["¿Son seguras para mis ojos?","Sin pegamento hay menor irritación; aptas para uso diario."],["¿Cuánto duran?","Cada par suele durar de 3 a 6 meses con uso normal."],["¿Puedo usarlas con mi maquillaje?","Sí, solas o combinadas con delineador."]]},
+ {id:"cepillo",name:"Cepillo de masaje facial",short:"Cepillo facial de drenaje",cat:"herramientas",price:149000,cmp:289000,
+  lead:"¿Sentís el rostro hinchado o cansado? Incorporá un masaje suave a tu rutina para estimular la piel y mejorar visualmente la apariencia del rostro.",
+  checks:["Ayuda a reducir la apariencia de hinchazón del rostro.","Cerdas ultrasuaves, seguras para pieles sensibles y maduras.","Se usa en seco, sin aceites ni sérums pegajosos."],
+  steps:[["Empezá limpiando","Limpieza suave o enjuague con agua fría; secá con palmaditas."],["Cepillá 3 a 5 minutos","Sobre piel seca, con movimientos ascendentes por mandíbula, mejillas y debajo de los ojos."],["Cuidado de la piel","Después aplicá tus productos habituales."],["Protector o maquillaje","Terminá tu rutina como siempre."]],
+  bens:[["Masaje tipo drenaje","Inspirado en técnicas de masaje linfático para un rostro que luce menos hinchado."],["Circulación","Cerdas suaves pero firmes que revitalizan sin irritar."],["Alivia la tensión","Relaja mandíbula y entrecejo."],["Diseño ergonómico","Mango esculpido para un control preciso."]],
+  faq:[["¿Con qué frecuencia debo usarlo?","Una vez al día durante 3 a 5 minutos, a la mañana o a la noche."],["¿Es apto para pieles sensibles?","Sí. Cerdas sintéticas ultrasuaves para todo tipo de piel."],["¿Cómo lo limpio?","Golpealo suavemente después de cada uso y limpiá las cerdas con un paño húmedo. Para limpieza profunda, remojá solo las cerdas en agua tibia con un limpiador suave y dejá secar al aire."],["¿Es vegano?","Sí, usa cerdas sintéticas y no se prueba en animales."]]},
+ {id:"balsamo",name:"Bálsamo facial reafirmante",short:"Bálsamo facial reafirmante",cat:"antiedad",price:149000,cmp:289000,
+  lead:"¿Te preocupan las líneas y la piel con aspecto cansado? Este bálsamo en barra aporta hidratación y ayuda a que el rostro luzca más suave, firme y luminoso.",
+  checks:["Formato en barra, práctico de aplicar y de llevar.","Un paso de hidratación con acabado luminoso.","Ayuda a que la piel se sienta más suave y confortable."],
+  steps:[["Piel limpia","Partí del rostro limpio."],["Deslizá la barra","Sobre las zonas indicadas en el envase."],["Seguí el envase","Respetá cantidad, frecuencia y zonas de aplicación."],["Repetí en tu rutina","Como paso de hidratación diario."]],
+  bens:[["Hidratación","Para la piel seca o tirante en distintos momentos del día."],["Acabado luminoso","Piel que luce más fresca."],["Práctico","El formato en barra facilita la aplicación."]],
+  faq:[["¿Qué aporta a mi rutina?","Es un cuidado facial en barra orientado a la hidratación y a un acabado luminoso."],["¿Cuándo se ven los resultados?","No hay un plazo garantizado; la apariencia y sensación de la piel varían de una persona a otra."],["¿Qué incluye mi pedido?","La cantidad de bálsamos de la opción que elijas."]],
+  note:"La respuesta de la piel varía; no se garantiza la eliminación de arrugas."},
+ {id:"base",name:"Beauty Cream · Base de maquillaje cushion",short:"Base de maquillaje antiedad",cat:"maquillaje",price:149000,cmp:206000,tones:["Bronceado","Natural","Marfil (claro)"],
+  lead:"¿Tu base se siente pesada o no combina con tu piel? Lográ una cobertura ligera a media, de aspecto natural, y elegí el tono ideal para cada unidad.",
+  checks:["Cobertura ligera a media con acabado de aspecto natural.","Textura liviana y aplicación práctica con puff.","Podés elegir el tono de cada unidad."],
+  steps:[["Presioná el puff","Sobre la almohadilla del cushion."],["Aplicá a toques","Desde el centro del rostro hacia afuera."],["Sumá capas finas","Donde necesites más cobertura."],["Sellá si querés","Con polvo en la zona T para un acabado más mate."]],
+  ing:[["Centella asiática","Para cuidar la piel."],["Hongo blanco","Aporta hidratación."],["Vitamina E","Cuidado antioxidante."]],
+  bens:[["Aplicación rápida","Base pareja en segundos con el formato cushion."],["Acabado natural","Glow sin brillos excesivos."],["Práctico para retocar","Compacto, para llevar en la cartera."]],
+  faq:[["¿Qué cobertura tiene?","Ligera a media, para un acabado natural y fresco."],["¿En qué tipo de piel funciona mejor?","Ideal para pieles normales, secas y mixtas."],["¿Oxida con el tiempo?","Está pensada para mantener el tono. Dejá asentar 2–3 minutos para confirmar el tono."],["¿Cuánto rinde?","Con uso moderado, aproximadamente 4 a 6 semanas."]]}
+];
+const CATS=[
+ {id:"antiedad",name:"Antiedad"},{id:"hidratacion",name:"Hidratación y manchas"},{id:"ojoslabios",name:"Ojos y labios"},{id:"maquillaje",name:"Maquillaje"},{id:"herramientas",name:"Herramientas"}
+];
+const BEST=["retinol","althea147","pdrn","celimax","lipshot","ojos"];
+const NEW=["beevenom","althea345","manchas","base","pestanas","balsamo","cepillo"];
+const DEPS=["Asunción","Central","Alto Paraguay","Alto Paraná","Amambay","Boquerón","Caaguazú","Caazapá","Canindeyú","Concepción","Cordillera","Guairá","Itapúa","Misiones","Ñeembucú","Paraguarí","Presidente Hayes","San Pedro"];
+const byId=Object.fromEntries(P.map(p=>[p.id,p]));
+/* rutina de cada producto: para qué sirve, zona, cuándo, con qué se combina */
+const RUT={
+ retinol:{para:"Para líneas de expresión, arrugas finas, poros visibles y textura irregular. Con uso constante, ayuda a que la piel luzca más firme y lisa.",zona:"Rostro y cuello, evitando ojos y labios",cuando:"De noche, sobre la piel limpia, antes de la crema",comp:["althea147","ojos","balsamo","cepillo"],motivo:"Para arrugas y firmeza, de noche"},
+ celimax:{para:"Para líneas finas, arrugas y pérdida de luminosidad. Con 0,1% de retinal y péptidos.",zona:"Rostro, evitando ojos y labios",cuando:"De noche, antes de la crema. Al comenzar, 2 veces por semana",comp:["althea147","ojos","pdrn","cepillo"],motivo:"Sérum con retinal para arrugas, de noche"},
+ beevenom:{para:"Para líneas de expresión, falta de firmeza y piel apagada. Hidrata y deja la piel más suave.",zona:"Rostro y cuello",cuando:"Mañana o noche, después del sérum. De día, con protector solar",comp:["balsamo","ojos","pdrn","cepillo"],motivo:"Crema antiarrugas para rostro y cuello"},
+ balsamo:{para:"Para arrugas marcadas por la sequedad en zonas puntuales. Hidrata y deja un acabado luminoso.",zona:"Zonas puntuales: frente, entrecejo y surcos",cuando:"Cuando lo necesites, sobre la piel limpia",comp:["beevenom","ojos","retinol","cepillo"],motivo:"Hidratación en barra para las líneas marcadas"},
+ pdrn:{para:"Para piel apagada, deshidratada o con menos firmeza. Aporta hidratación y luminosidad.",zona:"Rostro y cuello",cuando:"Mañana y noche: 2 a 3 gotas antes de la crema",comp:["althea147","beevenom","manchas","cepillo"],motivo:"Sérum para una piel luminosa e hidratada"},
+ althea147:{para:"Para piel seca, tirante o sensible. Hidratación profunda que calma y da confort.",zona:"Rostro y cuello",cuando:"Mañana y noche, como último paso de tu rutina",comp:["pdrn","retinol","ojos","cepillo"],motivo:"Crema hidratante y calmante para cerrar tu rutina"},
+ althea345:{para:"Para piel sensible, con rojeces, marquitas o textura desigual. Hidrata y fortalece la barrera de la piel.",zona:"Rostro",cuando:"Mañana y noche, después del sérum",comp:["pdrn","manchas","cepillo"],motivo:"Calma la piel sensible y las rojeces"},
+ manchas:{para:"Para manchas oscuras, tono desigual y piel opaca. Con arbutina 7% y ácido tranexámico 4%.",zona:"Sobre las manchas o en todo el rostro",cuando:"Mañana y noche. De día, siempre con protector solar",comp:["pdrn","althea345","base"],motivo:"Para manchas y tono desigual"},
+ ojos:{para:"Para bolsas, líneas y mirada cansada. Efecto tensor temporal que alisa el contorno.",zona:"Contorno de ojos",cuando:"De día, sobre la piel limpia y seca, antes del maquillaje",comp:["base","pestanas","retinol"],motivo:"Para bolsas y líneas alrededor de los ojos"},
+ lipshot:{para:"Para labios secos, ásperos o agrietados. Los hidrata y los suaviza.",zona:"Labios",cuando:"De día antes del labial, o de noche antes de dormir",comp:["base","ojos","pestanas"],motivo:"Labios hidratados y suaves"},
+ base:{para:"Para unificar el tono con una cobertura ligera a media y acabado natural.",zona:"Rostro",cuando:"De día, después de tu crema, a toquecitos con el puff",comp:["ojos","lipshot","pestanas"],motivo:"Base liviana de acabado natural"},
+ pestanas:{para:"Para realzar la mirada sin pegamento. Se colocan con imán en segundos.",zona:"Pestañas",cuando:"Cuando quieras un look especial",comp:["ojos","base","lipshot"],motivo:"Mirada realzada en segundos"},
+ cepillo:{para:"Para el rostro hinchado o cansado. Un masaje suave que ayuda a aplicar mejor tus cremas.",zona:"Rostro, mandíbula y cuello",cuando:"1 vez al día, 3 a 5 minutos sobre la piel seca, antes de tus cremas",comp:["beevenom","pdrn","althea147"],motivo:"Masaje facial que potencia tus cremas"}
+};
+const RUTINAS=[
+ {t:"Arrugas y firmeza",i:"Para líneas de expresión, arrugas y piel que perdió firmeza. De día crema y bálsamo; de noche, el sérum con retinol.",ids:["beevenom","balsamo","retinol"]},
+ {t:"Manchas y tono",i:"Para manchas oscuras, tono desigual y piel opaca. Siempre con protector solar durante el día.",ids:["pdrn","manchas"]},
+ {t:"Piel seca o sensible",i:"Para piel tirante, sensible o con rojeces. Hidratación profunda que calma.",ids:["pdrn","althea147","althea345"]},
+ {t:"Ojos y labios",i:"Para bolsas, líneas alrededor de los ojos y labios secos.",ids:["ojos","lipshot"]},
+ {t:"Rostro hinchado o cansado",i:"Un masaje de 3 a 5 minutos antes de tus cremas, y una crema que hidrata y da firmeza.",ids:["cepillo","beevenom"]}
+];
+
+/* packs como en la tienda: 2 u. 30% menos, 3 u. 35% menos + cepillo de regalo */
+const packPriceLocal=(p,n)=>n===1?p.price:n===2?Math.round(p.price*2*0.7):Math.round(p.price*3*0.65);
+const packPrice=(p,n)=>(TDS.qp[p.id]&&TDS.qp[p.id][n]!=null)?TDS.qp[p.id][n]:packPriceLocal(p,n);
+const gs=v=>"Gs. "+Math.round(v).toLocaleString("es-PY").replace(/,/g,".");
+const pct=p=>Math.round((1-p.price/p.cmp)*100);
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t); if(c)e.className=c; if(x!=null)e.textContent=x; return e;};
+
+let photos={}, canEdit=false, assets=null, db=null;
+/* ---------- Tiendy: estado y utilidades ---------- */
+const TDS={ready:false,map:{},store:null,cities:null,qp:{},ship:null,icId:null};
+const norm=s=>(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/\s+/g," ").trim();
+function tdMatch(list){
+  const slugs=(window.TIENDY_CONFIG||{}).SLUGS||{};
+  P.forEach(p=>{ let t=null;
+    if(slugs[p.id]) t=list.find(x=>x.slug===slugs[p.id]);
+    if(!t){ const k=norm(p.name); t=list.find(x=>norm(x.name)===k); }
+    if(t) TDS.map[p.id]={productId:t.id,slug:t.slug,img:TD.imageOf(t),skus:null};
+  });
+}
+function skuFor(id,tone){
+  const m=TDS.map[id]; if(!m||!m.skus||!m.skus.length) return undefined;
+  if(tone){ const s=m.skus.find(s=>norm(JSON.stringify(s.options||"")).includes(norm(tone))); if(s) return s.id; }
+  return (m.skus.find(s=>s.status!=="inactive"&&s.stock!==0)||m.skus[0]).id;
+}
+function tdItems(){
+  const lines=cart.map(l=>({id:l.id,tone:l.tone,n:l.n})); if(bump) lines.push({id:BUMP.id,tone:null,n:1});
+  if(lines.some(l=>!TDS.map[l.id])) return null;
+  return lines.map(l=>{const it={productId:TDS.map[l.id].productId,quantity:l.n}; const s=skuFor(l.id,l.tone); if(s) it.skuId=s; return it;});
+}
+const tdContents=items=>(items||[]).map(i=>({id:String(i.productId),quantity:i.quantity}));
+async function ensureTiers(id){
+  if(!TDS.ready||!TDS.map[id]||TDS.qp[id]) return false;
+  const m=TDS.map[id], s=skuFor(id,null), q={}; TDS.qp[id]=q;
+  await Promise.all([1,2,3].map(async n=>{ try{ const it={productId:m.productId,quantity:n}; if(s) it.skuId=s; const r=await TD.quote({items:[it]}); if(r&&typeof r.subtotal==="number") q[n]=r.subtotal; }catch(e){} }));
+  return Object.keys(q).length>0;
+}
+function rerender(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
+async function tdInit(){
+  if(!window.TD||!TD.on) return;
+  try{
+    const [store,list,cities]=await Promise.all([TD.getStore(),TD.allProducts(),TD.getCities().catch(()=>null)]);
+    TDS.store=store; TDS.cities=cities; tdMatch(list);
+    await Promise.all(Object.entries(TDS.map).map(async([id,m])=>{ try{
+      const d=await TD.detail(m.slug); m.skus=d.skus||[]; m.img=TD.imageOf(d)||m.img;
+      const s=m.skus.find(x=>x.status!=="inactive")||m.skus[0], p=byId[id];
+      if(s){ const pr=s.salePrice||s.price; if(pr){ if(s.salePrice&&s.price>s.salePrice) p.cmp=s.price; p.price=pr; } }
+    }catch(e){} }));
+    TDS.ready=Object.keys(TDS.map).length>0;
+    TD.loadPixel(store); TD.event("PageView");
+    rerender();
+  }catch(e){ console.warn("Tiendy no disponible:",e&&e.message); }
+}
+function tdCheckoutFields(fm){
+  if(!TDS.ready) return;
+  const C=TDS.cities;
+  if(C&&C.departments&&C.cities){
+    const dep=fm.querySelector("#cDep"), old=fm.querySelector("#cCiu");
+    dep.textContent=""; dep.append(new Option("Elegí tu departamento",""));
+    C.departments.forEach(d=>dep.append(new Option(d.name.charAt(0)+d.name.slice(1).toLowerCase(),d.code)));
+    if(form.cDep&&C.departments.some(d=>d.code===form.cDep)) dep.value=form.cDep; else form.cDep="";
+    const ciu=el("select"); ciu.id="cCiu";
+    const fill=()=>{ ciu.textContent=""; ciu.append(new Option(dep.value?"Elegí tu ciudad":"Primero elegí el departamento",""));
+      C.cities.filter(c=>c.departmentCode===dep.value).forEach(c=>ciu.append(new Option(c.name.charAt(0)+c.name.slice(1).toLowerCase(),c.code)));
+      if(form.cCiu&&[...ciu.options].some(o=>o.value===form.cCiu)) ciu.value=form.cCiu; else form.cCiu=""; };
+    fill(); old.replaceWith(ciu);
+    dep.addEventListener("change",()=>{form.cDep=dep.value; fill(); drawSum();});
+    ciu.addEventListener("change",()=>{form.cCiu=ciu.value; ciu.parentElement.classList.remove("bad"); ciu.parentElement.querySelector(".err").textContent=""; drawSum();});
+  }
+  const fields=(TDS.store&&TDS.store.checkout&&TDS.store.checkout.fields)||{};
+  const em=fields.email&&(fields.email.status||fields.email.mode||fields.email);
+  if(em==="required"||em==="optional"){
+    const d=el("div","f"); const l=el("label",null,"Email"+(em==="optional"?" (opcional)":"")); l.htmlFor="cMail"; const i=el("input"); i.type="email"; i.id="cMail"; i.autocomplete="email"; i.placeholder="tu@email.com"; if(form.cMail) i.value=form.cMail;
+    const er=el("span","err"); i.addEventListener("input",()=>{form.cMail=i.value; d.classList.remove("bad"); er.textContent="";}); d.append(l,i,er); d.dataset.req=em;
+    fm.querySelector("#cTel").parentElement.after(d);
+  }
+  const opts=((TDS.store&&TDS.store.paymentOptions)||[]);
+  if(opts.length){
+    const pay=fm.querySelector(".paysel"); pay.querySelectorAll("label").forEach(n=>n.remove());
+    if(!opts.some(o=>o.id===form.pago)) form.pago=opts[0].id;
+    opts.forEach(o=>{ const l=el("label"); const r=el("input"); r.type="radio"; r.name="pago"; r.value=o.id; r.checked=form.pago===o.id; r.addEventListener("change",()=>{form.pago=o.id; drawSum();});
+      const x=el("span"); x.append(el("b",null,o.label||"Forma de pago")); if(o.manual&&o.manual.instructions) x.append(el("span",null,o.manual.instructions)); l.append(r,x); pay.append(l); });
+  }
+  const n=fm.querySelector(".note:last-child"); if(n) n.textContent="Tu pedido llega directo a la tienda. Te escribimos por WhatsApp para confirmar.";
+  const err=el("p","err tderr"); err.setAttribute("role","alert"); fm.append(err);
+  TDS.icId=TD.event("InitiateCheckout",tdContents(tdItems()));
+}
+const tdOpt=()=>((TDS.store&&TDS.store.paymentOptions)||[]).find(o=>o.id===form.pago)||null;
+let tdQuoteSeq=0;
+async function tdSum(S){
+  const items=tdItems(); if(!items) return;
+  const seq=++tdQuoteSeq, opt=tdOpt();
+  const base={items}; if(form.cCiu) base.cityId=form.cCiu; if(opt&&opt.request&&opt.request.customPaymentMethodId) base.customPaymentMethodId=opt.request.customPaymentMethodId; if(opt&&opt.request&&opt.request.viaStripe) base.viaStripe=true;
+  try{
+    let q=await TD.quote(Object.assign({},base,TDS.ship?{shippingMethodId:TDS.ship}:{}));
+    const av=q.availableShippingMethodIds||[];
+    if(av.length&&!av.includes(TDS.ship)){ TDS.ship=av[0]; q=await TD.quote(Object.assign({},base,{shippingMethodId:TDS.ship})); }
+    if(seq!==tdQuoteSeq||!S.isConnected) return;
+    S.querySelectorAll(".row.e,.row.t,.row.q,.stockw").forEach(n=>n.remove());
+    const row=(a,b,c)=>{const r=el("div","row "+(c||"q")); r.append(el("span",null,a),el("span",null,b)); S.append(r);};
+    if(q.bundleSavings) row("Ahorro por packs","− "+gs(q.bundleSavings));
+    if(q.couponDiscount) row("Cupón","− "+gs(q.couponDiscount));
+    if(q.paymentAdjustment) row("Ajuste por forma de pago",(q.paymentAdjustment>0?"+ ":"− ")+gs(Math.abs(q.paymentAdjustment)));
+    row("Envío",form.cCiu?(q.shippingPrice?gs(q.shippingPrice):"Gratis"):"Elegí tu ciudad","e");
+    row("Total",gs(q.total),"t");
+    if(q.stockIssues&&q.stockIssues.length) S.append(el("p","note stockw","⚠️ Hay un producto con stock limitado para esa cantidad. Bajá la cantidad o elegí otro."));
+  }catch(e){}
+}
+let ckKey=null, ckSig=null;
+async function tdSubmit(fm,btn){
+  const box=fm.querySelector(".tderr"), say=t=>{ if(box) box.textContent=t; };
+  const items=tdItems(); if(!items){ say("Algunos productos de tu carrito todavía no están cargados en la tienda."); return; }
+  const md=fm.querySelector("[data-req=required] #cMail"); if(md&&!/^\S+@\S+\.\S+$/.test(md.value)){ md.parentElement.classList.add("bad"); md.parentElement.querySelector(".err").textContent="Escribí un email válido"; md.focus(); return; }
+  const opt=tdOpt(), nm=(form.cNom||"").trim().split(/\s+/);
+  const body=Object.assign({items,tel:(form.cTel||"").replace(/[^\d+]/g,""),name:nm[0],lastName:nm.slice(1).join(" ")||undefined,email:form.cMail||undefined,
+    cityId:form.cCiu||undefined,direction1:form.cDir,direction2:form.cRef||undefined,shippingMethodId:TDS.ship||undefined,metaContext:TD.metaContext(TDS.icId)},opt&&opt.request?opt.request:{});
+  if(body.viaPagopar===undefined) body.viaPagopar=false;
+  const sig=JSON.stringify([items,body.cityId,body.shippingMethodId,form.pago,body.tel,body.direction1]);
+  if(sig!==ckSig){ ckSig=sig; ckKey=TD.uuid(); }
+  btn.disabled=true; btn.textContent="Enviando pedido…"; say("");
+  try{
+    const r=await TD.checkout(body,ckKey);
+    const dep=TDS.cities&&TDS.cities.departments.find(d=>d.code===form.cDep);
+    last={total:r.total,orderId:r.id,token:r.publicToken,tracking:r.trackingUrl,opt,name:form.cNom,tel:form.cTel,dep:dep?dep.name:"",pago:"td"};
+    try{ localStorage.setItem("bc.lastOrder",JSON.stringify({token:r.publicToken,id:r.id,name:form.cNom,tel:form.cTel})); }catch(e){}
+    cart=[]; bump=false; saveCart(); ckSig=null;
+    if(opt&&opt.kind==="stripe"){ const p=await TD.pay(r.publicToken,location.origin+location.pathname+"#gracias"); const u=p&&(p.url||p.checkoutUrl||p.redirectUrl); if(u){ location.href=u; return; } }
+    go("gracias");
+  }catch(e){
+    btn.disabled=false; btn.textContent="Confirmar pedido";
+    if(e.code==="INSUFFICIENT_STOCK"){ ckSig=null; say("Uno de los productos no tiene stock suficiente para esa cantidad. Ajustá el carrito y probá de nuevo."); drawSum(); }
+    else if(e.code==="RATE_LIMITED") say("Hay muchos pedidos en este momento. Esperá unos segundos y probá de nuevo.");
+    else if(e.code==="ORIGIN_NOT_ALLOWED") say("Esta página todavía no está autorizada en la tienda.");
+    else if(e instanceof TypeError) say("No hay conexión. Revisá internet y tocá de nuevo: tu pedido no se duplica.");
+    else say(e.message||"No se pudo enviar el pedido. Probá de nuevo.");
+  }
+}
+function tdThanksExtra(w){
+  if(last.orderId) w.append(el("p",null,"Número de pedido: "+last.orderId+". Guardalo para consultar el estado."));
+  const m=last.opt&&last.opt.manual;
+  if(m){ const b=el("div","payinfo"); b.style.textAlign="left"; b.append(el("h2",null,"Datos para la transferencia")); if(m.instructions) b.append(el("p",null,m.instructions));
+    (m.accounts||[]).forEach(a=>{ const p=el("p"); Object.values(a).filter(v=>typeof v==="string"||typeof v==="number").forEach((v,i)=>{ if(i) p.append(document.createElement("br")); p.append(document.createTextNode(String(v))); }); b.append(p); });
+    w.append(b); }
+  if(last.tracking){ const a=el("a",null,"Ver el estado de mi pedido"); a.href=last.tracking; a.target="_blank"; a.rel="noopener"; w.append(a); }
+}
+async function tdRestoreThanks(){
+  let s=null; try{ s=JSON.parse(localStorage.getItem("bc.lastOrder")||"null"); }catch(e){}
+  if(!s||!s.token||!TD.on) return false;
+  try{ const o=await TD.order(s.token); last={total:o.total,orderId:o.id,token:s.token,tracking:o.trackingUrl,opt:null,name:s.name,tel:s.tel,dep:"",pago:"td"}; return true; }catch(e){ return false; }
+}
+
+let cart=[]; try{cart=JSON.parse(localStorage.getItem("bc.cart")||"[]")||[];}catch(e){cart=[];}
+const saveCart=()=>{try{localStorage.setItem("bc.cart",JSON.stringify(cart));}catch(e){} $("cartCount").textContent=cart.reduce((a,l)=>a+l.n,0);};
+
+/* marquesina */
+const pillTxt=["BLACK FRIDAY DE NAVIDAD","ENVÍO GRATIS A TODO PARAGUAY","PAGÁS AL RECIBIR","2 UNIDADES 30% MENOS","3 UNIDADES 35% MENOS + CEPILLO DE REGALO"];
+const pt=$("pillTr"); for(let i=0;i<4;i++) pillTxt.forEach(t=>pt.append(el("span",null,t)));
+
+/* fotos (el dueño las sube desde la página) */
+function photo(box,key,label,opts){
+  opts=opts||{};
+  box.querySelectorAll(":scope > .ph, :scope > img, :scope > .up, :scope > .bgimg").forEach(n=>n.remove());
+  const id=photos[key]; const ext=!id&&key.slice(0,2)==="p-"&&TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img;
+  if(id||ext){ const im=el("img"); im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
+  else if(!opts.noph){ const ph=el("div","ph"); ph.innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-7 7"/></svg>'; ph.append(el("span",null,label)); box.prepend(ph); }
+  if(canEdit&&assets&&!opts.noup){ const b=el("button","up",id?"Cambiar foto":"Subir foto"); b.type="button"; b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();pick(key,b);}); if(opts.upTarget) opts.upTarget.append(b); else box.append(b); }
+}
+function pick(key,btn){
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+  inp.onchange=async()=>{ const f=inp.files&&inp.files[0]; if(!f)return; btn.disabled=true; btn.textContent="Subiendo…";
+    try{ const blob=await shrink(f); const r=await assets.upload(blob,{type:"image/jpeg"}); photos[key]=r.id; await db.doc("photos/main").set(Object.assign({},photos)); route(); }
+    catch(e){ btn.disabled=false; btn.textContent="No se pudo subir"; } };
+  inp.click();
+}
+function shrink(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),"image/jpeg",.86);};img.onerror=rej;img.src=u;});}
+
+/* tarjeta */
+function card(p){
+  const b=el("button","pc"); b.type="button"; b.setAttribute("aria-label",p.name);
+  const im=el("div","im"); photo(im,"p-"+p.id,p.short,{});
+  const badge=el("span","badge","Black Friday"); im.append(badge);
+  b.append(im, el("h3",null,p.name), el("span","br","Beauty Clean"));
+  const pr=el("div","price"); pr.append(el("s",null,gs(p.cmp)), el("b",null,gs(p.price))); b.append(pr);
+  b.addEventListener("click",()=>go("p-"+p.id));
+  return b;
+}
+function rail(ids){ const r=el("div","rail prods"); ids.forEach(id=>r.append(card(byId[id]))); return r; }
+function secHead(title,count,link){ const h=el("div","sh"); const t=el("h2",null,title); if(count){const s=el("sup",null,String(count)); t.append(s);} h.append(t); if(link){const a=el("a",null,"Ver todo ›"); a.addEventListener("click",()=>go(link)); h.append(a);} return h; }
+
+/* vistas */
+function viewHome(app){
+  setHeader(false);
+  const hero=el("section","hero"); photo(hero,"hero","",{wrap:true,noph:true,noup:true});
+  const inn=el("div","in gut"); inn.append(el("span","tagbf","BLACK FRIDAY · NAVIDAD"));
+  const h=el("h1",null,"Belleza y cuidado personal para elegir con confianza"); inn.append(h);
+  inn.append(el("p",null,"Hasta 35% menos llevando 3 unidades, con cepillo facial de regalo. Envío gratis a todo Paraguay y pagás al recibir."));
+  const b=el("button","btn-w","COMPRAR AHORA"); b.type="button"; b.addEventListener("click",()=>go("productos")); inn.append(b);
+  hero.append(inn);
+  if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"hero","",{noph:true,upTarget:w}); hero.append(w); }
+  app.append(hero);
+
+  const perks=el("div","perks gut");
+  [["🚚","Envío gratis","A todo Paraguay"],["💵","Contra entrega","O por transferencia"],["⏱️","24 a 72 h hábiles","Según tu ciudad"],["🎁","Cepillo de regalo","Llevando 3 unidades"]].forEach(([i,t,s])=>{const d=el("div");const ic=el("span","ic",i);const tx=el("span");tx.append(el("b",null,t),document.createTextNode(s));d.append(ic,tx);perks.append(d);});
+  app.append(perks);
+
+  const cs=el("section","sec gut"); cs.append(secHead("Comprá por categoría"));
+  const cr=el("div","rail");
+  CATS.forEach(c=>{ const b=el("button","cat"); b.type="button"; const bg=el("div","bg"); b.append(bg);
+    bg.style.background=({antiedad:"linear-gradient(160deg,#8C7B70,#D9C7B8)",hidratacion:"linear-gradient(160deg,#6F8796,#C9D6DD)",ojoslabios:"linear-gradient(160deg,#9A7468,#E6CBBE)",maquillaje:"linear-gradient(160deg,#A08A74,#EADBC9)",herramientas:"linear-gradient(160deg,#6D7268,#CFD3C8)"})[c.id];
+    photo(bg,"cat-"+c.id,"",{noph:true,noup:true});
+    b.append(el("h3",null,c.name), el("span","gl","COMPRAR AHORA"));
+    if(canEdit&&assets){ photo(el("div"),"cat-"+c.id,"",{noph:true,upTarget:b}); }
+    b.addEventListener("click",()=>{filter=c.id; go("productos");}); cr.append(b); });
+  cs.append(cr); app.append(cs);
+
+  const bs=el("section","sec gut"); bs.append(secHead("Más vendidos",BEST.length,"productos"), rail(BEST)); app.append(bs);
+
+  const mq=el("div","bigmq"); const tr=el("div","tr");
+  for(let i=0;i<4;i++){ tr.append(el("span",null,"Envío gratis a todo Paraguay")); const e=el("em",null,"Black Friday"); tr.append(e); tr.append(el("span",null,"Pagás al recibir")); }
+  mq.append(tr); app.append(mq);
+
+  const bn=el("section","gut"); const ban=el("div","banner"); photo(ban,"banner1","",{wrap:true,noph:true,noup:true});
+  const bi=el("div","in gut"); bi.append(el("h2",null,"Tu piel, en su mejor versión"), el("p",null,"Rutinas simples con productos coreanos: limpiás, aplicás tu sérum y sellás con crema. Así de fácil."));
+  const bb=el("button","btn-o","PROBALA HOY"); bb.type="button"; bb.addEventListener("click",()=>go("p-retinol")); bi.append(bb); ban.append(bi);
+  if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"banner1","",{noph:true,upTarget:w}); ban.append(w); }
+  bn.append(ban); app.append(bn);
+
+  const ns=el("section","sec gut"); ns.append(secHead("Novedades",NEW.length,"productos"), rail(NEW)); app.append(ns);
+
+  const pk=el("section","sec gut"); pk.id="packs"; const pkin=el("div","packsec gut");
+  pkin.append(secHead("Packs de Black Friday"));
+  const hp=el("div","howpk");
+  [["1","Llevá 1 y probalo","Precio de oferta en cada producto."],["2","2 unidades, 30% menos","Ideal para compartir o tener de repuesto."],["3","3 unidades, 35% menos","Y te regalamos un cepillo facial."]].forEach(([n,t,s])=>{const d=el("div");d.append(el("span","n",n),el("span","t",t),el("p",null,s));hp.append(d);});
+  pkin.append(hp); pk.append(pkin); app.append(pk);
+
+  const b2=el("section","sec gut"); const ban2=el("div","banner pine"); photo(ban2,"banner2","",{wrap:true,noph:true,noup:true});
+  const bi2=el("div","in gut"); bi2.append(el("h2",null,"Un regalo de Navidad que se usa todos los días"), el("p",null,"Armá tu pack, recibilo en 24 a 72 horas y pagá en efectivo cuando llega."));
+  const bb2=el("button","btn-w","ARMAR MI REGALO"); bb2.type="button"; bb2.addEventListener("click",()=>go("productos")); bi2.append(bb2); ban2.append(bi2);
+  if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"banner2","",{noph:true,upTarget:w}); ban2.append(w); }
+  b2.append(ban2); app.append(b2);
+
+  const rs=el("section","sec gut"); rs.id="rutinas"; rs.append(secHead("Encontrá tu rutina según lo que buscás"), el("p","rsub big","Elegí lo que más te preocupa y te mostramos qué usar, en qué orden y cuándo."));
+  const tabs=el("div","rtabs"); tabs.setAttribute("role","tablist"); const panel=el("div","rpanel");
+  const showR=(k)=>{ [...tabs.children].forEach((b,j)=>{b.setAttribute("aria-selected",String(j===k)); b.tabIndex=j===k?0:-1;}); panel.textContent=""; const R=RUTINAS[k];
+    panel.append(el("p","rintro",R.i)); const ol=el("ol","rsteps"); let tot=0;
+    R.ids.forEach((id,n)=>{ const p=byId[id]; tot+=p.price; const li=el("li","rstep"); const th=el("div","rth"); photo(th,"p-"+p.id,p.short,{noup:true});
+      const tx=el("div","rtx"); const nm=el("a","rname",p.short); nm.href="#p-"+p.id; tx.append(el("span","rn","Paso "+(n+1)), nm, el("span","rwhy",RUT[id].para), el("span","rwhen","Cuándo: "+RUT[id].cuando), el("span","rprice",gs(p.price))); li.append(th,tx); ol.append(li); });
+    panel.append(ol); const cta=el("div","rcta"); const tt=el("div"); tt.append(el("span","k","RUTINA COMPLETA"), el("b",null,gs(tot)));
+    const b=el("button","btn-w","Sumar la rutina completa"); b.type="button"; b.addEventListener("click",()=>{ R.ids.forEach(id=>{ if(!cart.some(l=>l.id===id)) cart.push({id,n:1,tone:byId[id].tones?byId[id].tones[0]:null}); }); saveCart(); openCart(); });
+    cta.append(tt,b); panel.append(cta); };
+  RUTINAS.forEach((R,k)=>{ const b=el("button",null,R.t); b.type="button"; b.setAttribute("role","tab"); b.addEventListener("click",()=>showR(k)); b.addEventListener("keydown",e=>{ if(e.key==="ArrowRight"||e.key==="ArrowLeft"){ const n=(k+(e.key==="ArrowRight"?1:RUTINAS.length-1))%RUTINAS.length; showR(n); tabs.children[n].focus(); } }); tabs.append(b); });
+  rs.append(tabs,panel); app.append(rs); showR(0);
+  const fq=el("section","sec gut"); fq.append(secHead("Preguntas frecuentes")); const acc=el("div","acc wide");
+  [["¿Cómo pago mi pedido?","Podés pagar en efectivo cuando recibís el pedido, o por transferencia. En Asunción y Gran Asunción podés transferir antes de que salga el delivery o al recibir el paquete."],
+   ["¿Cuánto tarda en llegar?","Asunción y Gran Asunción: 24 a 48 horas hábiles. Interior del país: 48 a 72 horas hábiles. El envío es gratis a todo Paraguay."],
+   ["¿Sirven para piel madura?","Sí. Cada producto indica para qué sirve y dónde se aplica. Si tenés piel sensible, probá primero en una zona pequeña. Los resultados varían según cada piel y la constancia de uso."],
+   ["¿Puedo usar varios productos juntos?","Sí. En cada producto te mostramos con qué se combina y en qué orden usarlo. No combines dos productos con retinol o retinal en la misma rutina."],
+   ["¿Qué pasa si llega dañado o equivocado?","Avisanos por el formulario de contacto dentro de las 48 horas de recibirlo, con fotos del paquete y del producto."],
+   ["¿Puedo cambiar o devolver un producto?","Tenés hasta 30 días, con el producto sin uso, cerrado y en su empaque original."]].forEach(([q,a])=>{const dd=el("details"); dd.append(el("summary",null,q), el("p",null,a)); acc.append(dd);});
+  fq.append(acc); app.append(fq);
+  if(canEdit){ const ed=el("div","ed gut"); ed.textContent="Solo vos ves este aviso: tocá «Subir foto» en la portada, las categorías, los banners y cada producto para poner tus fotos. Quedan guardadas para todos los que abran la página."; app.append(ed); }
+}
+
+let filter="todos";
+function viewList(app){
+  setHeader(true);
+  const s=el("section","sec gut"); s.append(secHead("Productos",P.length));
+  const ch=el("div","chips"); [{id:"todos",name:"Todos"},...CATS].forEach(c=>{const b=el("button",null,c.name);b.type="button";b.setAttribute("aria-pressed",String(filter===c.id));b.addEventListener("click",()=>{filter=c.id;route();});ch.append(b);});
+  s.append(ch);
+  const g=el("div","grid"); P.filter(p=>filter==="todos"||p.cat===filter).forEach(p=>g.append(card(p))); s.append(g);
+  app.append(s);
+}
+
+let sel={n:2,tone:0};
+function viewProduct(app,id){
+  const p=byId[id]; if(!p){ go("productos"); return; }
+  setHeader(true); document.body.classList.add("on-product");
+  const w=el("section","pp gut");
+  const gal=el("div","pgal"); const main=el("div","main"); photo(main,"p-"+p.id,p.short,{}); gal.append(main); w.append(gal);
+  const inf=el("div","pinfo");
+  const cr=el("div","crumbs"); const a=el("a",null,"Productos"); a.addEventListener("click",()=>go("productos")); cr.append(a, document.createTextNode(" / "+p.short)); inf.append(cr);
+  inf.append(el("h1",null,p.name), el("p","lead",p.lead));
+  const pr=el("div","price"); pr.append(el("b",null,gs(p.price)), el("s",null,gs(p.cmp)), el("span","off","-"+pct(p)+"%")); inf.append(pr);
+  inf.append(el("p","note","📦 Envío gratis a todo Paraguay · Pagás al recibir o por transferencia"));
+  if(p.tones){ inf.append(el("span","lbl","Tono")); const t=el("div","tones"); p.tones.forEach((tn,i)=>{const b=el("button",null,tn);b.type="button";b.setAttribute("aria-pressed",String(sel.tone===i));b.addEventListener("click",()=>{sel.tone=i;route();});t.append(b);}); inf.append(t); }
+  inf.append(el("span","lbl","Elegí la opción para tu pedido"));
+  const ops=el("div","opts"); ops.setAttribute("role","radiogroup");
+  [[1,"Llevá 1 y probalo","Precio vigente",""],[2,"Llevá 2 y ahorrá 30%",(p.pack2||"30% de descuento")+" · ahorrás "+gs(p.price*2-packPrice(p,2)),"MÁS VENDIDO"],[3,"Llevá 3: regalo + 35% OFF","Un cepillo facial de regalo · ahorrás "+gs(p.price*3-packPrice(p,3)),"MEJOR OFERTA"]].forEach(([n,t,s,tg])=>{
+    const b=el("button","opt"); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(sel.n===n));
+    if(tg){const x=el("span","tg"+(n===3?" gold":""),tg); b.append(x);}
+    b.append(el("span","dot")); const m=el("span"); m.append(el("span","nm",t)); m.firstChild.style.display="block"; const sb=el("span","sb",s); sb.style.display="block"; m.append(sb); b.append(m);
+    const r=el("span","pr"); r.append(el("b",null,gs(packPrice(p,n)))); if(n>1) r.append(el("span",null,gs(Math.round(packPrice(p,n)/n))+" c/u")); b.append(r);
+    b.addEventListener("click",()=>{sel.n=n;route();}); ops.append(b);
+  });
+  inf.append(ops, el("p","note","El descuento y el regalo se aplican automáticamente."));
+  const add=el("button","addbtn","Agregar al carrito · "+gs(packPrice(p,sel.n))); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,p.tones?p.tones[sel.tone]:null)); inf.append(add);
+  const ck=el("ul","checks"); (p.checks||[]).forEach(c=>{const li=el("li"); li.append(el("span","ck","✓"), el("span",null,c)); ck.append(li);}); inf.append(ck);
+  const tr=el("div","trust"); ["🚚 Envío gratis a todo Paraguay","💵 Contra entrega o transferencia","⏱️ Asunción y Gran Asunción 24–48 h hábiles","📍 Interior 48–72 h hábiles"].forEach(t=>tr.append(el("div",null,t))); inf.append(tr);
+  const R=RUT[p.id];
+  if(R){ const box=el("div","rinfo"); box.append(el("h2",null,"Para qué sirve y cómo usarlo"));
+    [["✓","Para qué sirve",R.para],["◎","Dónde se aplica",R.zona],["☾","Cuándo usarlo",R.cuando]].forEach(([ic,t,v])=>{const d=el("div","rtile"); d.append(el("span","ric",ic)); const x=el("div"); x.append(el("b",null,t), el("p",null,v)); d.append(x); box.append(d);});
+    box.append(el("h3",null,"Completá tu rutina"), el("p","rsub","Estos productos se usan juntos y potencian tu cuidado."));
+    R.comp.slice(0,3).forEach(cid=>{ const c=byId[cid]; if(!c) return; const card=el("div","rcard"); const th=el("div","rth"); photo(th,"p-"+c.id,"Foto",{noup:true});
+      const tx=el("div","rtx"); const nm=el("a","rname",c.short); nm.href="#p-"+c.id; tx.append(nm, el("span","rwhy",(RUT[c.id]||{}).motivo||""), el("span","rprice",gs(c.price)));
+      const b=el("button","addbtn","Sumar al carrito"); b.type="button"; b.addEventListener("click",()=>addToCart(c.id,1,c.tones?c.tones[0]:null)); tx.append(b);
+      card.append(th,tx); box.append(card); });
+    inf.append(box); }
+  w.append(inf); app.append(w);
+
+  if(p.steps){ const s=el("section","sec gut"); s.append(secHead("Cómo se usa")); const g=el("div","steps4"); p.steps.forEach(([t,d],i)=>{const c=el("div"); c.append(el("span","n",String(i+1)), el("b",null,t), el("p",null,d)); g.append(c);}); s.append(g); app.append(s); }
+  if(p.ing){ const s=el("section","sec gut"); s.append(secHead("La fórmula")); const g=el("div","ingr"); p.ing.forEach(([k,d])=>{const c=el("div"); c.append(el("b",null,k), el("p",null,d)); g.append(c);}); s.append(g); app.append(s); }
+  if(p.bens){ const s=el("section","sec gut"); s.append(secHead("Beneficios que vas a notar")); const g=el("div","rail bens"); p.bens.forEach(([t,d])=>{const c=el("div","ben"); c.append(el("b",null,t), el("p",null,d)); g.append(c);}); s.append(g); if(p.note) s.append(el("p","note",p.note)); app.append(s); }
+  if(p.faq){ const s=el("section","sec gut"); s.append(secHead("Preguntas frecuentes")); const acc=el("div","acc wide"); p.faq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); s.append(acc); app.append(s); }
+
+  const pay=el("section","sec gut"); const box=el("div","payinfo");
+  box.append(el("h2",null,"Recibí tu pedido y pagá al recibir"));
+  const cols=el("div","pcols");
+  const c1=el("div"); c1.append(el("b",null,"Asunción y Gran Asunción"), el("p",null,"24 a 48 horas hábiles. Podés transferir antes de que salga el delivery o al recibir el paquete."));
+  const c2=el("div"); c2.append(el("b",null,"Interior del país"), el("p",null,"48 a 72 horas hábiles. Pagás contra entrega, o transferís por adelantado para priorizar el despacho por transportadora."));
+  const c3=el("div"); c3.append(el("b",null,"Cambios y devoluciones"), el("p",null,"Hasta 30 días, con el producto sin uso y cerrado. Si llega dañado, equivocado o incompleto, avisanos dentro de las 48 horas."));
+  cols.append(c1,c2,c3); box.append(cols, el("p","note","Plazos estimados después de confirmar el pedido. No cuentan fines de semana ni feriados.")); pay.append(box); app.append(pay);
+
+  const rel=el("section","sec gut"); rel.append(secHead("Completá tu rutina",0,"productos"), rail(P.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.id==="cepillo")).slice(0,6).map(x=>x.id))); app.append(rel);
+
+  if(TDS.ready){ ensureTiers(p.id).then(ch=>{ if(ch&&location.hash==="#p-"+p.id) rerender(); }); if(TDS.map[p.id]) TD.event("ViewContent",[{id:String(TDS.map[p.id].productId),quantity:1}]); }
+  const mb=$("mbar"); mb.hidden=false; mb.textContent=""; const mbb=el("button","addbtn","Agregar · "+gs(packPrice(p,sel.n))); mbb.type="button"; mbb.addEventListener("click",()=>addToCart(p.id,sel.n,p.tones?p.tones[sel.tone]:null)); mb.append(mbb);
+}
+
+let bump=false, form={};
+function lineTotal(l){ return l.special!=null? l.special : packPrice(byId[l.id],l.n); }
+function cartTotal(){ return cart.reduce((a,l)=>a+lineTotal(l),0) + (bump?BUMP.price:0); }
+const BUMP={id:"pestanas",price:139000};
+function viewCheckout(app){
+  setHeader(true);
+  if(!cart.length){ const s=el("section","sec gut"); s.append(el("p","empty","Tu carrito está vacío.")); const b=el("button","addbtn","Ver productos"); b.style.maxWidth="320px"; b.addEventListener("click",()=>go("productos")); s.append(b); app.append(s); return; }
+  const w=el("section","co gut");
+  const L=el("div"); L.style.display="flex"; L.style.flexDirection="column"; L.style.gap="14px";
+  L.append(el("h1",null,"Finalizar pedido"), el("p","note","Revisá que tu nombre, teléfono, ciudad, dirección y referencia estén correctos. Guardá tu número de pedido para consultar el estado de tu compra."));
+  const fm=el("form"); fm.noValidate=true; fm.style.display="flex"; fm.style.flexDirection="column"; fm.style.gap="12px";
+  const fld=(id,label,type,ph,opts)=>{const d=el("div","f");const l=el("label",null,label);l.htmlFor=id;let i;if(type==="select"){i=el("select");i.append(new Option("Elegí tu departamento",""));opts.forEach(o=>i.append(new Option(o,o)));}else{i=el("input");i.type=type;if(ph)i.placeholder=ph;if(type==="tel")i.inputMode="tel";}i.id=id;if(form[id])i.value=form[id];const er=el("span","err");i.addEventListener("input",()=>{form[id]=i.value;d.classList.remove("bad");er.textContent="";});d.append(l,i,er);return d;};
+  fm.append(fld("cNom","Nombre y apellido","text","Ej.: Laura Benítez"), fld("cTel","WhatsApp","tel","Ej.: 0981 123 456"));
+  const g=el("div","g2"); g.append(fld("cDep","Departamento","select","",DEPS), fld("cCiu","Ciudad","text","Ej.: San Lorenzo")); fm.append(g);
+  fm.append(fld("cDir","Dirección","text","Calle, número, barrio"), fld("cRef","Referencia (opcional)","text","Ej.: frente a la farmacia"));
+  if(!cart.some(l=>l.id===BUMP.id)){
+    const bl=el("label","bump"); const cb=el("input"); cb.type="checkbox"; cb.id="cBump"; cb.checked=bump; cb.addEventListener("change",()=>{bump=cb.checked; drawSum();});
+    const tx=el("span"); tx.append(el("b",null,"🎁 Sumá Pestañas magnéticas por "+gs(BUMP.price)), el("span",null,"Se colocan con imán, sin pegamento. Precio de oferta (antes "+gs(byId.pestanas.cmp)+").")); bl.append(cb,tx); fm.append(bl);
+  }
+  const pay=el("fieldset","paysel"); pay.style.border="0"; pay.style.padding="0"; pay.style.margin="0"; pay.append(el("legend","lbl","Forma de pago"));
+  [["ce","Pago contra entrega","Pagás cuando recibís el pedido. Disponible en todo Paraguay."],["tr","Transferencia bancaria","Te pasamos los datos por mensaje al confirmar. En Asunción podés transferir al recibir."]].forEach(([v,t,d],i)=>{const l=el("label");const r=el("input");r.type="radio";r.name="pago";r.value=v;r.checked=(form.pago||"ce")===v;r.addEventListener("change",()=>{form.pago=v;});const x=el("span");x.append(el("b",null,t),el("span",null,d));l.append(r,x);pay.append(l);});
+  fm.append(pay);
+  const sub=el("button","addbtn","Confirmar pedido"); sub.type="submit"; fm.append(sub);
+  fm.append(el("p","note","Vista previa: este formulario todavía no envía pedidos. Se conecta a la tienda cuando lo apruebes."));
+  fm.addEventListener("submit",e=>{e.preventDefault(); let ok=true;
+    [["cNom",v=>v.trim().length>=3,"Escribí tu nombre y apellido"],["cTel",v=>v.replace(/\D/g,"").length>=9,"Escribí un WhatsApp válido"],["cDep",v=>!!v,"Elegí tu departamento"],["cCiu",v=>v.trim().length>=2,"Escribí tu ciudad"],["cDir",v=>v.trim().length>=5,"Escribí tu dirección"]].forEach(([id,t,m])=>{const i=$(id);if(!t(i.value||"")){ok=false;i.parentElement.classList.add("bad");i.parentElement.querySelector(".err").textContent=m;}});
+    if(!ok){const b=fm.querySelector(".bad input,.bad select");b&&b.focus();return;}
+    if(TDS.ready){ tdSubmit(fm,sub); return; }
+    last={items:cart.slice(),bump,total:cartTotal(),name:form.cNom,tel:form.cTel,dep:form.cDep,pago:form.pago||"ce"}; cart=[]; bump=false; saveCart(); go("gracias");
+  });
+  tdCheckoutFields(fm);
+  L.append(fm); w.append(L);
+  const S=el("aside","sumbox"); S.id="sumbox"; w.append(S); app.append(w); drawSum();
+}
+function drawSum(){
+  const S=$("sumbox"); if(!S) return; S.textContent=""; S.append(el("span","lbl","Tu pedido"));
+  cart.forEach(l=>{const p=byId[l.id];const r=el("div","row");r.append(el("span",null,p.short+(l.tone?" · "+l.tone:"")+" × "+l.n+(l.n===3?" + cepillo de regalo":(l.n===2&&p.pack2?" + Celimax de regalo":""))),el("span",null,gs(lineTotal(l))));S.append(r);});
+  if(bump){const r=el("div","row");r.append(el("span",null,"Pestañas magnéticas × 1"),el("span",null,gs(BUMP.price)));S.append(r);}
+  const e=el("div","row e");e.append(el("span",null,"Envío"),el("span",null,TDS.ready?"Calculando…":"Gratis"));S.append(e);
+  const t=el("div","row t");t.append(el("span",null,"Total al recibir"),el("span",null,gs(cartTotal())));S.append(t);
+  if(TDS.ready) tdSum(S);
+}
+let last=null;
+function viewThanks(app){
+  setHeader(true);
+  const w=el("section","thanks gut");
+  if(!last){ w.append(el("h1",null,"Gracias")); app.append(w); if(window.TD&&TD.on) tdRestoreThanks().then(ok=>{ if(ok&&location.hash==="#gracias") route(); }); return; }
+  w.append(el("div",null,"🎉"), el("h1",null,"¡Gracias, "+((last.name||"").trim().split(" ")[0])+"!"));
+  w.append(el("p",null,"Recibimos tu pedido por "+gs(last.total)+(last.pago==="td"?(last.opt&&last.opt.label?". Forma de pago: "+last.opt.label+".":"."):last.pago==="tr"?". Te enviamos los datos para la transferencia al confirmar.":". Lo pagás al recibir.")));
+  w.append(el("p",null,"Te contactamos al "+last.tel+" para confirmar. Entrega estimada: "+(["asuncion","central","capital"].includes(norm(last.dep))?"24 a 48 horas hábiles.":"48 a 72 horas hábiles.")));
+  if(last.pago==="td") tdThanksExtra(w);
+  const b=el("button","addbtn","Seguir comprando"); b.style.maxWidth="320px"; b.addEventListener("click",()=>go("productos")); w.append(b);
+  app.append(w);
+}
+
+/* carrito */
+function addToCart(id,n,tone){
+  const ex=cart.find(l=>l.id===id&&l.tone===tone&&l.special==null);
+  if(ex){ ex.n=Math.min(3,ex.n+n); } else cart.push({id,n,tone:tone||null});
+  saveCart(); openCart();
+  if(TDS.ready&&TDS.map[id]) TD.event("AddToCart",[{id:String(TDS.map[id].productId),quantity:n}]);
+}
+function openCart(){ drawCart(); $("scrim").hidden=false; $("drawer").hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{const x=$("drawer").querySelector(".x");x&&x.focus();},30); }
+function closeCart(){ $("scrim").hidden=true; $("drawer").hidden=true; document.body.style.overflow=""; }
+$("scrim").addEventListener("click",closeCart);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeCart();});
+$("cartBtn").addEventListener("click",openCart);
+function crossPicks(max){
+  const inCart=new Set(cart.map(l=>l.id)); const out=[];
+  for(const l of cart){ const R=RUT[l.id]; if(!R) continue; for(const cid of R.comp){ if(out.length>=max) break; if(!inCart.has(cid)&&!out.includes(cid)) out.push(cid); } }
+  for(const cid of ["cepillo","lipshot","ojos","althea147"]){ if(out.length>=max) break; if(!inCart.has(cid)&&!out.includes(cid)) out.push(cid); }
+  return out.map(id=>byId[id]);
+}
+let downsell=null;
+function drawCart(){
+  const d=$("drawer"); d.textContent="";
+  const h=el("div","dh"); const t=el("h2",null,"Tu carrito"); t.id="dT"; const x=el("button","x","✕"); x.type="button"; x.setAttribute("aria-label","Cerrar carrito"); x.addEventListener("click",closeCart); h.append(t,x); d.append(h);
+  const body=el("div","db"); d.append(body);
+  if(TDS.ready){ const need=cart.filter(l=>!TDS.qp[l.id]).map(l=>l.id); if(need.length) Promise.all(need.map(ensureTiers)).then(r=>{ if(r.some(Boolean)&&!$("drawer").hidden) drawCart(); }); }
+  if(downsell && !cart.some(l=>l.id===downsell.id)){ const p=byId[downsell.id]; const box=el("div","dsell"); box.append(el("b",null,"¿Preferís probar primero con 1 unidad?"), el("span",null,p.short+" a "+gs(p.price)+". Si te gusta, después volvés por más."));
+    const bb=el("button","addbtn","Sí, llevar 1 unidad"); bb.type="button"; bb.addEventListener("click",()=>{cart.push({id:p.id,n:1,tone:downsell.tone}); downsell=null; saveCart(); drawCart();}); box.append(bb); body.append(box); }
+  if(!cart.length){ body.append(el("p","empty","Tu carrito está vacío.")); return; }
+  const units=cart.reduce((a,l)=>a+l.n,0);
+  // upsell: subir de pack
+  const ul=cart.find(l=>l.special==null&&l.n<3);
+  if(ul){ const p=byId[ul.id]; const nn=ul.n+1; const diff=packPrice(p,nn)-packPrice(p,ul.n);
+    const box=el("div","upsell"); box.append(el("span","k","MEJOR PRECIO POR UNIDAD"));
+    box.append(el("b",null, nn===2?"Llevá 2 unidades y ahorrá 30%":"Pasá a 3 y llevate el cepillo facial de regalo"));
+    box.append(el("span",null,(nn===2?"Las 2 por ":"Las 3 por ")+gs(packPrice(p,nn))+": solo "+gs(diff)+" más."+(nn===2&&p.pack2?" Y sumás 1 Celimax de regalo.":"")));
+    const bb=el("button","addbtn light",nn===2?"Cambiar a 2 unidades":"Cambiar a 3 unidades"); bb.type="button"; bb.addEventListener("click",()=>{ul.n=nn; saveCart(); drawCart();}); box.append(bb); body.append(box); }
+  const gift=el("div","gift");
+  const has3=cart.some(l=>l.n===3);
+  gift.append(document.createTextNode(has3?"🎁 ¡Listo! Tu pedido incluye el cepillo facial de regalo.":"🎁 Llevando 3 unidades de un producto te regalamos un cepillo facial."));
+  const bar=el("div","bar"); const i=el("i"); i.style.width=(has3?100:Math.min(100,Math.max(...cart.map(l=>l.n))/3*100))+"%"; bar.append(i); gift.append(bar); body.append(gift);
+  cart.forEach((l,ix)=>{ const p=byId[l.id]; const r=el("div","li"); const th=el("div","th"); photo(th,"p-"+p.id,"Foto",{noup:true});
+    const m=el("div"); m.append(el("b",null,p.short)); m.append(el("span","sb",(l.tone?l.tone+" · ":"")+(l.special!=null?"Precio especial del carrito":(l.n===1?"1 unidad":l.n+" unidades"+(l.n===3?" + cepillo de regalo":" · 30% menos"+(p.pack2?" + Celimax 15 ml de regalo":""))))));
+    const rm=el("button","rm","Quitar"); rm.type="button"; rm.addEventListener("click",()=>{ if(l.n>=2&&l.special==null) downsell={id:l.id,tone:l.tone}; cart.splice(ix,1);saveCart();drawCart();}); m.append(document.createElement("br"),rm);
+    r.append(th,m,el("b",null,gs(lineTotal(l)))); body.append(r); });
+  const picks=crossPicks(2);
+  if(picks.length){ const wrap=el("div","ups-wrap"); wrap.append(el("span","k","COMPLETÁ TU RUTINA"));
+    picks.forEach(u=>{ const box=el("div","ups"); const th=el("div","th"); photo(th,"p-"+u.id,"Foto",{noup:true});
+      const m=el("div"); m.append(el("b",null,u.short), el("span","sb",(RUT[u.id]||{}).motivo||""), el("span","sb",gs(u.price)+" · antes "+gs(u.cmp)));
+      const a=el("button","add","Sumar"); a.type="button"; a.addEventListener("click",()=>{cart.push({id:u.id,n:1,tone:u.tones?u.tones[0]:null});saveCart();drawCart();});
+      box.append(th,m,a); wrap.append(box); });
+    body.append(wrap); }
+  const f=el("div","df"); const sb=el("div","row"); sb.append(el("span",null,"Subtotal ("+units+(units===1?" unidad)":" unidades)")),el("span",null,gs(cart.reduce((a,l)=>a+lineTotal(l),0))));
+  const en=el("div","row"); en.append(el("span",null,"Envío"),el("span",null,TDS.ready?"Se calcula al finalizar":"Gratis"));
+  const go2=el("button","addbtn","Finalizar pedido · Pagás al recibir"); go2.type="button"; go2.addEventListener("click",()=>{closeCart();go("checkout");});
+  f.append(sb,en,go2); d.append(f);
+}
+
+/* router */
+function setHeader(solid){ $("hdr").classList.toggle("solid",solid); }
+function go(h){ if(location.hash==="#"+h) route(); else location.hash=h; }
+function route(){
+  const app=$("app"); app.textContent=""; document.body.classList.remove("on-product"); $("mbar").hidden=true;
+  const h=(location.hash||"#inicio").slice(1);
+  if(h==="productos") viewList(app);
+  else if(h.startsWith("p-")) viewProduct(app,h.slice(2));
+  else if(h==="checkout") viewCheckout(app);
+  else if(h==="gracias") viewThanks(app);
+  else { viewHome(app); if(h==="packs"){ const s=$("packs"); s&&s.scrollIntoView(); return; } }
+  window.scrollTo(0,0);
+}
+let lastHash=location.hash;
+window.addEventListener("hashchange",()=>{ const prev=lastHash; lastHash=location.hash; if(location.hash.startsWith("#p-")&&!(prev||"").startsWith(location.hash)) sel={n:2,tone:0}; route(); });
+document.querySelectorAll("[data-go]").forEach(a=>a.addEventListener("click",()=>go(a.dataset.go)));
+saveCart(); route(); tdInit();
+
+(async()=>{
+  try{ db=window.claude&&await window.claude.use("db"); }catch(e){}
+  try{ const u=window.claude&&await window.claude.use("user"); canEdit=!!(u&&await u.canEdit()); }catch(e){}
+  try{ assets=canEdit&&window.claude?await window.claude.use("assets"):null; }catch(e){ assets=null; }
+  if(!db){ return; }
+  let first=true;
+  db.doc("photos/main").onSnapshot(s=>{ photos=(s.exists&&Object.assign({},s.data()))||{}; const y=window.scrollY; route(); if(!first) window.scrollTo(0,y); first=false; },()=>{});
+})();
+})();
+</script>
+
+</body>
+</html>
