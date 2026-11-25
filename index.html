@@ -269,7 +269,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 /* producto */
 .pp{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:48px;padding-block:28px 40px}
-@media (max-width:860px){.pp{grid-template-columns:1fr;gap:22px}}
+@media (max-width:860px){.pp{grid-template-columns:minmax(0,1fr);gap:22px}}
 .pgal{display:flex;flex-direction:column;gap:10px}
 .pgal .main{position:relative;aspect-ratio:1/1;border-radius:20px;background:var(--soft);overflow:hidden;display:grid;place-items:center}
 .pgal .main img{width:100%;height:100%;object-fit:cover}
@@ -436,6 +436,63 @@ footer .logo{color:#fff;font-size:30px}
 .ups-wrap .ups{border:0;padding:0}
 .dsell{border:1px solid #000;background:var(--soft);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;letter-spacing:normal}
 .dsell b{color:#000;font-weight:500}.dsell .addbtn{width:auto;align-self:flex-start;padding:12px 18px;min-height:44px}
+
+/* ficha de producto estilo infinitelove-bcn.com/products (Inter, negro, café #8A5B4D, beige #F5F3EF/#DECEBA) */
+.pinfo.il{gap:12px;letter-spacing:normal;min-width:0}
+.pp>*{min-width:0}
+.bopt,.bmid{min-width:0}
+@media (max-width:420px){.bpr{flex-direction:column;gap:0;align-items:flex-end}}
+.kicker{margin:0;color:#8A5B4D;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;line-height:1.65}
+.pinfo.il h1{font-weight:600;font-size:25px;letter-spacing:-1px;line-height:1.2;color:#000}
+@media (min-width:900px){.pinfo.il h1{font-size:32px}}
+.ilead{margin:0;font-size:15px;color:rgba(0,0,0,.75);line-height:1.6;letter-spacing:.2px}
+.ilprice{display:flex;gap:10px;align-items:baseline;font-variant-numeric:tabular-nums}
+.ilprice s,.ilprice b{white-space:nowrap}
+.ilprice s{color:rgba(0,0,0,.31);font-size:19px;letter-spacing:-.5px}
+.ilprice b{color:#000;font-size:19px;font-weight:400;letter-spacing:-.5px}
+.ilprice span{font-size:13px;font-weight:300;color:#8C8C8C;text-transform:uppercase}
+.ildots{margin:4px 0;padding-left:22px;font-size:14px;line-height:1.8;color:#000}
+.ildots li::marker{font-size:11px}
+.bundle{border:1px solid #E4E3E1;border-radius:9px;margin-top:6px}
+.bhead{background:#F5F3EF;border-bottom:1px solid #E4E3E1;border-radius:9px 9px 0 0;padding:10px 15px;font-size:14px;font-weight:500;color:#000}
+.bopts{display:flex;flex-direction:column;gap:14px;padding:14px 12px 12px}
+.bopt{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid #E4E3E1;border-radius:9px;padding:14px 12px;cursor:pointer;font:inherit;color:#000;min-height:58px}
+.bopt[aria-checked="true"]{border:2px solid #000;padding:13px 11px}
+.bdot{width:18px;height:18px;border-radius:50%;border:1.5px solid #000;flex:none;display:grid;place-items:center}
+.bopt[aria-checked="true"] .bdot::after{content:"";width:10px;height:10px;border-radius:50%;background:#000}
+.bmid{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;min-width:0}
+.bmid b{font-size:14px;font-weight:700}
+.bpill{background:#F5F3EF;border:1px solid #DECEBA;border-radius:4px;font-size:10.5px;padding:1px 6px;color:#000;white-space:nowrap}
+.bgift{flex-basis:100%;font-size:12px;color:#8A5B4D;font-weight:600}
+.bpr{margin-left:auto;text-align:right;white-space:nowrap;display:flex;gap:6px;align-items:baseline;font-variant-numeric:tabular-nums}
+.bpr s{font-size:12px;color:#888;letter-spacing:-1px}
+.bpr b{font-size:15px;font-weight:700}
+.bbadge{position:absolute;top:-12px;right:12px;background:#DECEBA;color:#000;font-size:12px;font-weight:500;padding:4px 8px;border-radius:5px;line-height:1.2}
+.ilship{display:flex;gap:8px;align-items:center;font-size:14px;color:#000;margin:4px 0 2px}
+.ilship svg{flex:none}
+.ilbuy{width:100%;background:#000;color:#fff;border:0;border-radius:999px;padding:12px 16px;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:inherit}
+.ilbuy b{font-size:15px;font-weight:700;letter-spacing:.6px}
+.ilbuy span{font-size:12.5px;color:rgba(255,255,255,.85)}
+.ilcart{width:100%;background:#000;color:#fff;border:0;border-radius:999px;padding:16px;min-height:54px;font:inherit;font-size:16px;font-weight:600;letter-spacing:-.4px;cursor:pointer}
+.ilg{margin:2px 0 0;font-size:14px;color:#000}
+.ilsec{padding-block:44px;border-top:1px solid #EAEAEA;letter-spacing:normal}
+.ilsec .in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.ilsec h2{margin:0;font-weight:400;font-size:clamp(29px,3.6vw,40px);line-height:1.06;letter-spacing:-1px;color:#000;text-wrap:balance}
+.lead2{margin:0;font-size:18px;line-height:1.65;letter-spacing:-.3px;color:#625D58}
+.ilsteps{display:flex;flex-direction:column;gap:12px}
+.ilsteps>div{display:flex;gap:14px;background:#F5F3EF;border-radius:14px;padding:16px}
+.ilsteps .n{flex:none;width:30px;height:30px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:600}
+.ilsteps b,.ilcards b{display:block;color:#000;font-size:16px;font-weight:600;letter-spacing:-.3px}
+.ilsteps p,.ilcards p{margin:3px 0 0;font-size:15px;color:#625D58;line-height:1.55}
+.ilcards{display:grid;gap:12px}
+.ilcards>div{border:1px solid #E4E3E1;border-radius:14px;padding:16px}
+@media (min-width:760px){.ilcards.two{grid-template-columns:1fr 1fr}}
+.ilsec .acc summary{font-weight:500;color:#000;font-size:16px}
+.ilsec .acc p{font-size:15px;color:#625D58;line-height:1.6}
+.ilsec .rcard{background:#fff}
+.ilsec .ilbuy{max-width:420px}
+@media (max-width:860px){body.on-product .mbar{background:transparent;border-top:0;padding-top:0}}
+.ilsticky{width:100%;background:#171717;color:#fff;border:0;border-radius:999px;min-height:54px;font:inherit;font-size:15px;font-weight:800;letter-spacing:-.3px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 </style>
 
 <header class="hdr gut" id="hdr">
@@ -865,60 +922,62 @@ function viewList(app){
 }
 
 let sel={n:2,tone:0};
+function buyNow(id,n,tone){
+  const ex=cart.find(l=>l.id===id&&l.tone===tone&&l.special==null);
+  if(ex){ ex.n=n; } else cart.push({id,n,tone:tone||null});
+  saveCart(); if(typeof TDS!=="undefined"&&TDS.ready&&TDS.map[id]) TD.event("AddToCart",[{id:String(TDS.map[id].productId),quantity:n}]);
+  go("checkout");
+}
+function ilSec(app,kick,title,lead){ const s=el("section","ilsec gut"); const i=el("div","in"); if(kick) i.append(el("p","kicker",kick)); if(title) i.append(el("h2",null,title)); if(lead) i.append(el("p","lead2",lead)); s.append(i); app.append(s); return i; }
 function viewProduct(app,id){
   const p=byId[id]; if(!p){ go("productos"); return; }
   setHeader(true); document.body.classList.add("on-product");
+  const R=RUT[p.id]||{}; const tone=()=>p.tones?p.tones[sel.tone]:null;
   const w=el("section","pp gut");
   const gal=el("div","pgal"); const main=el("div","main"); photo(main,"p-"+p.id,p.short,{}); gal.append(main); w.append(gal);
-  const inf=el("div","pinfo");
-  const cr=el("div","crumbs"); const a=el("a",null,"Productos"); a.addEventListener("click",()=>go("productos")); cr.append(a, document.createTextNode(" / "+p.short)); inf.append(cr);
-  inf.append(el("h1",null,p.name), el("p","lead",p.lead));
-  const pr=el("div","price"); pr.append(el("b",null,gs(p.price)), el("s",null,gs(p.cmp)), el("span","off","-"+pct(p)+"%")); inf.append(pr);
-  inf.append(el("p","note","📦 Envío gratis a todo Paraguay · Pagás al recibir o por transferencia"));
-  if(p.tones){ inf.append(el("span","lbl","Tono")); const t=el("div","tones"); p.tones.forEach((tn,i)=>{const b=el("button",null,tn);b.type="button";b.setAttribute("aria-pressed",String(sel.tone===i));b.addEventListener("click",()=>{sel.tone=i;route();});t.append(b);}); inf.append(t); }
-  inf.append(el("span","lbl","Elegí la opción para tu pedido"));
-  const ops=el("div","opts"); ops.setAttribute("role","radiogroup");
-  [[1,"Llevá 1 y probalo","Precio vigente",""],[2,"Llevá 2 y ahorrá 30%",(p.pack2||"30% de descuento")+" · ahorrás "+gs(p.price*2-packPrice(p,2)),"MÁS VENDIDO"],[3,"Llevá 3: regalo + 35% OFF","Un cepillo facial de regalo · ahorrás "+gs(p.price*3-packPrice(p,3)),"MEJOR OFERTA"]].forEach(([n,t,s,tg])=>{
-    const b=el("button","opt"); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(sel.n===n));
-    if(tg){const x=el("span","tg"+(n===3?" gold":""),tg); b.append(x);}
-    b.append(el("span","dot")); const m=el("span"); m.append(el("span","nm",t)); m.firstChild.style.display="block"; const sb=el("span","sb",s); sb.style.display="block"; m.append(sb); b.append(m);
-    const r=el("span","pr"); r.append(el("b",null,gs(packPrice(p,n)))); if(n>1) r.append(el("span",null,gs(Math.round(packPrice(p,n)/n))+" c/u")); b.append(r);
-    b.addEventListener("click",()=>{sel.n=n;route();}); ops.append(b);
+  const inf=el("div","pinfo il");
+  if(R.motivo) inf.append(el("p","kicker",R.motivo));
+  inf.append(el("h1",null,p.name), el("p","ilead",p.lead));
+  const pr=el("div","ilprice"); pr.append(el("s",null,gs(p.cmp)), el("b",null,gs(p.price))); inf.append(pr);
+  if(p.checks&&p.checks.length){ const ul=el("ul","ildots"); p.checks.forEach(c=>ul.append(el("li",null,c))); inf.append(ul); }
+  if(p.tones){ inf.append(el("span","lbl","Tono")); const t=el("div","tones"); p.tones.forEach((tn,i)=>{const b=el("button",null,tn);b.type="button";b.setAttribute("aria-pressed",String(sel.tone===i));b.addEventListener("click",()=>{sel.tone=i;rerenderKeep();});t.append(b);}); inf.append(t); }
+  const bx=el("div","bundle"); bx.append(el("div","bhead","Comprá más y ahorrá"));
+  const bo=el("div","bopts"); bo.setAttribute("role","radiogroup"); bo.setAttribute("aria-label","Cantidad");
+  [[1,"1 Unidad"],[2,"2 Unidades"],[3,"3 Unidades"]].forEach(([n,t])=>{
+    const b=el("button","bopt"); b.type="button"; b.setAttribute("role","radio"); b.setAttribute("aria-checked",String(sel.n===n));
+    if(n===2) b.append(el("span","bbadge","Más vendido"));
+    b.append(el("span","bdot"));
+    const m=el("span","bmid"); m.append(el("b",null,t)); if(n>1) m.append(el("span","bpill","Solo "+gs(Math.round(packPrice(p,n)/n))+" / u."));
+    if(n===3) m.append(el("span","bgift","+ Cepillo facial de regalo")); else if(n===2&&p.pack2&&/Celimax/i.test(p.pack2)) m.append(el("span","bgift","+ Celimax 15 ml de regalo"));
+    b.append(m);
+    const r=el("span","bpr"); r.append(el("s",null,gs(p.cmp*n)), el("b",null,gs(packPrice(p,n)))); b.append(r);
+    b.addEventListener("click",()=>{sel.n=n;rerenderKeep();}); bo.append(b);
   });
-  inf.append(ops, el("p","note","El descuento y el regalo se aplican automáticamente."));
-  const add=el("button","addbtn","Agregar al carrito · "+gs(packPrice(p,sel.n))); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,p.tones?p.tones[sel.tone]:null)); inf.append(add);
-  const ck=el("ul","checks"); (p.checks||[]).forEach(c=>{const li=el("li"); li.append(el("span","ck","✓"), el("span",null,c)); ck.append(li);}); inf.append(ck);
-  const tr=el("div","trust"); ["🚚 Envío gratis a todo Paraguay","💵 Contra entrega o transferencia","⏱️ Asunción y Gran Asunción 24–48 h hábiles","📍 Interior 48–72 h hábiles"].forEach(t=>tr.append(el("div",null,t))); inf.append(tr);
-  const R=RUT[p.id];
-  if(R){ const box=el("div","rinfo"); box.append(el("h2",null,"Para qué sirve y cómo usarlo"));
-    [["✓","Para qué sirve",R.para],["◎","Dónde se aplica",R.zona],["☾","Cuándo usarlo",R.cuando]].forEach(([ic,t,v])=>{const d=el("div","rtile"); d.append(el("span","ric",ic)); const x=el("div"); x.append(el("b",null,t), el("p",null,v)); d.append(x); box.append(d);});
-    box.append(el("h3",null,"Completá tu rutina"), el("p","rsub","Estos productos se usan juntos y potencian tu cuidado."));
-    R.comp.slice(0,3).forEach(cid=>{ const c=byId[cid]; if(!c) return; const card=el("div","rcard"); const th=el("div","rth"); photo(th,"p-"+c.id,"Foto",{noup:true});
-      const tx=el("div","rtx"); const nm=el("a","rname",c.short); nm.href="#p-"+c.id; tx.append(nm, el("span","rwhy",(RUT[c.id]||{}).motivo||""), el("span","rprice",gs(c.price)));
-      const b=el("button","addbtn","Sumar al carrito"); b.type="button"; b.addEventListener("click",()=>addToCart(c.id,1,c.tones?c.tones[0]:null)); tx.append(b);
-      card.append(th,tx); box.append(card); });
-    inf.append(box); }
+  bx.append(bo); inf.append(bx);
+  const sh=el("p","ilship"); sh.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>'; sh.append(el("span",null,"Envío gratis: Asunción y Gran Asunción en 24–48 h hábiles")); inf.append(sh);
+  const buy=el("button","ilbuy"); buy.type="button"; buy.append(el("b",null,"PEDIR AHORA"), el("span",null,"Pagás al recibir · Contra entrega o transferencia")); buy.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); inf.append(buy);
+  const add=el("button","ilcart","Añadir al carrito"); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,tone())); inf.append(add);
+  const g=el("p","ilg"); g.append(el("b",null,"Cambios: "), document.createTextNode("hasta 30 días con el producto sin uso y cerrado.")); inf.append(g);
   w.append(inf); app.append(w);
 
-  if(p.steps){ const s=el("section","sec gut"); s.append(secHead("Cómo se usa")); const g=el("div","steps4"); p.steps.forEach(([t,d],i)=>{const c=el("div"); c.append(el("span","n",String(i+1)), el("b",null,t), el("p",null,d)); g.append(c);}); s.append(g); app.append(s); }
-  if(p.ing){ const s=el("section","sec gut"); s.append(secHead("La fórmula")); const g=el("div","ingr"); p.ing.forEach(([k,d])=>{const c=el("div"); c.append(el("b",null,k), el("p",null,d)); g.append(c);}); s.append(g); app.append(s); }
-  if(p.bens){ const s=el("section","sec gut"); s.append(secHead("Beneficios que vas a notar")); const g=el("div","rail bens"); p.bens.forEach(([t,d])=>{const c=el("div","ben"); c.append(el("b",null,t), el("p",null,d)); g.append(c);}); s.append(g); if(p.note) s.append(el("p","note",p.note)); app.append(s); }
-  if(p.faq){ const s=el("section","sec gut"); s.append(secHead("Preguntas frecuentes")); const acc=el("div","acc wide"); p.faq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); s.append(acc); app.append(s); }
-
-  const pay=el("section","sec gut"); const box=el("div","payinfo");
-  box.append(el("h2",null,"Recibí tu pedido y pagá al recibir"));
-  const cols=el("div","pcols");
-  const c1=el("div"); c1.append(el("b",null,"Asunción y Gran Asunción"), el("p",null,"24 a 48 horas hábiles. Podés transferir antes de que salga el delivery o al recibir el paquete."));
-  const c2=el("div"); c2.append(el("b",null,"Interior del país"), el("p",null,"48 a 72 horas hábiles. Pagás contra entrega, o transferís por adelantado para priorizar el despacho por transportadora."));
-  const c3=el("div"); c3.append(el("b",null,"Cambios y devoluciones"), el("p",null,"Hasta 30 días, con el producto sin uso y cerrado. Si llega dañado, equivocado o incompleto, avisanos dentro de las 48 horas."));
-  cols.append(c1,c2,c3); box.append(cols, el("p","note","Plazos estimados después de confirmar el pedido. No cuentan fines de semana ni feriados.")); pay.append(box); app.append(pay);
-
-  const rel=el("section","sec gut"); rel.append(secHead("Completá tu rutina",0,"productos"), rail(P.filter(x=>x.id!==p.id&&(x.cat===p.cat||x.id==="cepillo")).slice(0,6).map(x=>x.id))); app.append(rel);
+  if(R.para){ const ps=R.para.split(/(?<=\.)\s+/); const i=ilSec(app,"Para qué sirve",ps[0],ps.slice(1).join(" ")||null); const c=el("div","ilcards two");
+    [["Dónde se aplica",R.zona],["Cuándo usarlo",R.cuando]].forEach(([t,v])=>{ if(!v) return; const d=el("div"); d.append(el("b",null,t), el("p",null,v)); c.append(d); }); i.append(c); }
+  if(p.steps){ const i=ilSec(app,"Cómo usarlo","Paso a paso para aprovecharlo mejor",null); const g2=el("div","ilsteps"); p.steps.forEach(([t,d],k)=>{const c=el("div"); const x=el("div"); x.append(el("b",null,t), el("p",null,d)); c.append(el("span","n",String(k+1)), x); g2.append(c);}); i.append(g2); }
+  if(p.ing){ const i=ilSec(app,"La fórmula","Qué tiene y para qué sirve cada ingrediente",null); const c=el("div","ilcards two"); p.ing.forEach(([k,d])=>{const x=el("div"); x.append(el("b",null,k), el("p",null,d)); c.append(x);}); i.append(c); }
+  if(p.bens){ const i=ilSec(app,"Lo que vas a notar","Beneficios con uso constante",null); const c=el("div","ilcards"); p.bens.forEach(([t,d])=>{const x=el("div"); x.append(el("b",null,t), el("p",null,d)); c.append(x);}); i.append(c); if(p.note) i.append(el("p","note",p.note)); }
+  if(R.comp&&R.comp.length){ const i=ilSec(app,"Completá tu rutina","Se usan juntos y potencian tu cuidado",null);
+    R.comp.slice(0,3).forEach(cid=>{ const c=byId[cid]; if(!c) return; const card=el("div","rcard"); const th=el("div","rth"); photo(th,"p-"+c.id,"Foto",{noup:true});
+      const tx=el("div","rtx"); const nm=el("a","rname",c.short); nm.href="#p-"+c.id; tx.append(nm, el("span","rwhy",(RUT[c.id]||{}).motivo||""), el("span","rprice",gs(c.price)));
+      const b=el("button","ilcart","Sumar al carrito"); b.type="button"; b.addEventListener("click",()=>addToCart(c.id,1,c.tones?c.tones[0]:null)); tx.append(b);
+      card.append(th,tx); i.append(card); }); }
+  if(p.faq){ const i=ilSec(app,"Dudas frecuentes","Todo lo que necesitás saber antes de pedirlo",null); const acc=el("div","acc wide"); p.faq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); i.append(acc); }
+  { const i=ilSec(app,"Envío y pago","Recibí tu pedido y pagá al recibir","Asunción y Gran Asunción: 24 a 48 horas hábiles. Interior: 48 a 72 horas hábiles. Pagás contra entrega o por transferencia. Cambios hasta 30 días con el producto sin uso y cerrado; si llega dañado o equivocado, avisanos dentro de las 48 horas.");
+    const b=el("button","ilbuy"); b.type="button"; b.append(el("b",null,"PEDIR AHORA"), el("span",null,gs(packPrice(p,sel.n))+" · "+(sel.n===1?"1 unidad":sel.n+" unidades"))); b.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); i.append(b); }
 
   if(TDS.ready){ ensureTiers(p.id).then(ch=>{ if(ch&&location.hash==="#p-"+p.id) rerender(); }); if(TDS.map[p.id]) TD.event("ViewContent",[{id:String(TDS.map[p.id].productId),quantity:1}]); }
-  const mb=$("mbar"); mb.hidden=false; mb.textContent=""; const mbb=el("button","addbtn","Agregar · "+gs(packPrice(p,sel.n))); mbb.type="button"; mbb.addEventListener("click",()=>addToCart(p.id,sel.n,p.tones?p.tones[sel.tone]:null)); mb.append(mbb);
+  const mb=$("mbar"); mb.hidden=false; mb.textContent=""; const mbb=el("button","ilsticky","Pedir ahora · pagá al recibir"); mbb.type="button"; mbb.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); mb.append(mbb);
 }
-
+function rerenderKeep(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
 let bump=false, form={};
 function lineTotal(l){ return l.special!=null? l.special : packPrice(byId[l.id],l.n); }
 function cartTotal(){ return cart.reduce((a,l)=>a+lineTotal(l),0) + (bump?BUMP.price:0); }
