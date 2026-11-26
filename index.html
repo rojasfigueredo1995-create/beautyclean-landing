@@ -136,6 +136,13 @@ window.TIENDY_CONFIG = {
 </head>
 <body>
 
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Beauty Clean">
+<meta property="og:title" content="Beauty Clean · Cuidado facial con envío gratis a todo Paraguay">
+<meta property="og:description" content="Pedí hoy y pagá en efectivo cuando lo recibís. Envío gratis a todo Paraguay.">
+<meta property="og:image" content="https://rojasfigueredo1995-create.github.io/beautyclean-landing/base-7.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111'/%3E%3Ctext x='32' y='44' font-family='Arial,Helvetica,sans-serif' font-size='36' font-weight='700' fill='%23fff' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
@@ -593,6 +600,22 @@ footer .logo{color:#fff;font-size:30px}
 .paybtn[disabled]{opacity:.6;cursor:progress}
 .wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#000;color:#fff;border-radius:999px;padding:14px 22px;text-decoration:none;font-weight:500;min-height:50px}
 
+/* v16: ayuda por WhatsApp solo donde ayuda a cerrar la compra, páginas de información */
+.wabox{margin-top:18px;padding:16px;border:1px solid #E4E3E1;border-radius:14px;background:#fff;display:flex;flex-direction:column;gap:10px;letter-spacing:normal}
+.wabox b{font-size:16px;color:#111}.wabox p{margin:0;font-size:14.5px;color:#625D58;line-height:1.45}
+a.wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:10px;border:1.5px solid #111;background:#fff;color:#111;font-weight:600;font-size:15px;text-decoration:none;padding:0 16px}
+a.wa svg{flex:none}
+.wamini{margin:12px 0 0;text-align:center;font-size:14.5px;color:#625D58;letter-spacing:normal}
+.wamini a{color:#111;font-weight:600;text-decoration:underline}
+.wabox[hidden],.wamini[hidden],a[data-wa][hidden]{display:none}
+.info{max-width:760px;margin-inline:auto;padding-block:28px 48px;letter-spacing:normal}
+.info h1{font-size:clamp(26px,6vw,38px);line-height:1.1;margin:0 0 16px;font-weight:600;letter-spacing:-.8px;color:#000}
+.info h2{font-size:17px;margin:26px 0 8px;font-weight:700;color:#000}
+.info p,.info li{font-size:16px;line-height:1.6;color:#3d3935}
+.info ul{padding-left:20px;margin:8px 0}
+.info .back{display:inline-block;margin-top:24px;color:#111;font-weight:600;text-decoration:underline}
+footer .flinks{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14)}
+footer .flinks a{color:#fff;font-size:14px;text-decoration:underline}
 /* v15: carrusel de videos propios */
 .vsec{display:none}.vsec.on{display:block}
 .vrail{display:grid;grid-auto-flow:column;grid-auto-columns:64%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-top:16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
@@ -688,10 +711,11 @@ footer .logo{color:#fff;font-size:30px}
 
 <footer class="gut">
   <div class="fg">
-    <div><div class="logo">Beauty <span>Clean</span></div><p style="margin-top:12px;max-width:38ch">Tienda online de belleza y cuidado personal en Paraguay. Sin local de venta al público.</p><p>Atención por formulario en días hábiles: respondemos normalmente dentro de 24 horas hábiles.</p></div>
-    <div><h4>Envíos y pagos</h4><ul><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Contra entrega o transferencia</li></ul></div>
+    <div><div class="logo">Beauty <span>Clean</span></div><p style="margin-top:12px;max-width:38ch">Tienda online de belleza y cuidado personal en Paraguay. Sin local de venta al público.</p><p>Atención por WhatsApp en días hábiles: respondemos normalmente dentro de 24 horas hábiles.</p></div>
+    <div><h4>Envíos y pagos</h4><ul><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Pagás en efectivo al recibir</li></ul></div>
     <div><h4>Cambios y devoluciones</h4><ul><li>Hasta 30 días, producto sin uso y cerrado</li><li>Dañado, equivocado o incompleto: avisanos en 48 h</li><li>Reembolsos en 7 a 10 días hábiles</li><li>beautyclean.store</li></ul></div>
   </div>
+  <nav class="flinks" aria-label="Información de la tienda"><a href="#nosotros">Sobre nosotros</a><a href="#envios">Envíos y devoluciones</a><a href="#terminos">Términos y condiciones</a><a href="#privacidad">Política de privacidad</a><a data-wa="Hola, tengo una consulta sobre Beauty Clean: " hidden>Escribinos por WhatsApp</a></nav>
   <p style="margin-top:20px;font-size:12px;opacity:.7">Nunca te pediremos contraseñas, códigos de seguridad ni datos completos de tarjetas.</p>
   <p style="margin-top:8px;font-size:12px;opacity:.75">© 2026 Beauty Clean · Paraguay</p>
 </footer>
@@ -896,6 +920,7 @@ async function tdInit(){
   try{
     const [store,list,cities]=await Promise.all([TD.getStore(),TD.allProducts(),TD.getCities().catch(()=>null)]);
     TDS.store=store; TDS.cities=cities; tdMatch(list);
+    { const w=String(store&&store.whatsapp||"").replace(/\D/g,""); if(w){ WA_NUM=w.startsWith("595")?w:"595"+w.replace(/^0/,""); try{ waSync(); }catch(e){} } }
     await Promise.all(Object.entries(TDS.map).map(async([id,m])=>{ try{
       if(!m.skus&&m.slug){ const d=await TD.detail(m.slug); m.skus=d.skus||[]; m.img=TD.imageOf(d)||m.img; m.item=d; }
       m.skus=m.skus||[];
@@ -1427,7 +1452,9 @@ function viewProduct(app,id){
       const tx=el("div","rtx"); const nm=el("a","rname",c.short); nm.href="#p-"+c.id; tx.append(nm, el("span","rwhy",(RUT[c.id]||{}).motivo||""), el("span","rprice",gs(c.price)));
       const b=el("button","ilcart","Sumar al carrito"); b.type="button"; b.addEventListener("click",()=>addToCart(c.id,1,c.tones?c.tones[0]:null)); tx.append(b);
       card.append(th,tx); i.append(card); }); }
-  { const fq=[...((CONT[p.id]||{}).faq||[]),...(p.faq||[]),...FAQG]; const i=ilSec(app,"Dudas frecuentes","Todo lo que necesitás saber antes de pedirlo",null); const acc=el("div","acc wide"); fq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); i.append(acc); }
+  { const fq=[...((CONT[p.id]||{}).faq||[]),...(p.faq||[]),...FAQG]; const i=ilSec(app,"Dudas frecuentes","Todo lo que necesitás saber antes de pedirlo",null); const acc=el("div","acc wide"); fq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); i.append(acc);
+    const wb=el("div","wabox"); wb.hidden=true; wb.append(el("b",null,"¿Te quedó alguna duda?"), el("p",null,"Si ya leíste todo y todavía tenés una pregunta sobre "+(p.short||p.name)+", escribinos. Respondemos en días hábiles."));
+    const a=el("a","wa"); a.innerHTML=WAICO; a.append(document.createTextNode("Consultar por WhatsApp")); a.dataset.wa="Hola, estoy viendo "+p.name+" en la página de Beauty Clean y tengo una consulta antes de hacer mi pedido: "; wb.append(a); i.append(wb); }
   { const i=howBuy(app,"Envío y pago","Recibí tu "+(p.short||p.name)+" en casa y pagá al recibir");
     const b=el("button","ilbuy"); b.type="button"; b.append(el("b",null,"PEDIR AHORA"), el("span",null,gs(packPrice(p,sel.n))+" · "+(sel.n===1?"1 unidad":sel.n+" unidades"))); b.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); i.append(b); }
 
@@ -1497,6 +1524,7 @@ function viewCheckout(app){
   [["ce","Pago contra entrega","Pagás cuando recibís el pedido. Disponible en todo Paraguay."],["tr","Transferencia bancaria","Te pasamos los datos por mensaje al confirmar. En Asunción podés transferir al recibir."]].forEach(([v,t,d],i)=>{const l=el("label");const r=el("input");r.type="radio";r.name="pago";r.value=v;r.checked=(form.pago||"ce")===v;r.addEventListener("change",()=>{form.pago=v;});const x=el("span");x.append(el("b",null,t),el("span",null,d));l.append(r,x);pay.append(l);});
   fm.append(pay);
   const sub=el("button","addbtn","Confirmar pedido"); sub.type="submit"; fm.append(sub);
+  { const wm=el("p","wamini"); wm.hidden=true; wm.append(document.createTextNode("¿No podés completar tu pedido? ")); const a=el("a",null,"Te ayudamos por WhatsApp"); a.dataset.wa="Hola, quiero hacer este pedido en Beauty Clean y necesito ayuda para terminarlo: "+cart.map(l=>(byId[l.id].short||byId[l.id].name)+" × "+l.n).join(", ")+"."; wm.append(a); fm.append(wm); }
   fm.append(el("p","note","Vista previa: este formulario todavía no envía pedidos. Se conecta a la tienda cuando lo apruebes."));
   fm.addEventListener("submit",e=>{e.preventDefault(); let ok=true;
     [["cNom",v=>/\S+\s+\S+/.test(v.trim()),"Escribí tu nombre y apellido"],["cTel",v=>v.replace(/\D/g,"").length>=9,"Escribí un WhatsApp válido"],["cDep",v=>!!v,"Elegí tu departamento"],["cCiu",v=>v.trim().length>=2,"Escribí tu ciudad"],["cDir",v=>v.trim().length>=5,"Escribí tu dirección"]].forEach(([id,t,m])=>{const i=$(id);if(!t(i.value||"")){ok=false;i.parentElement.classList.add("bad");i.parentElement.querySelector(".err").textContent=m;}});
@@ -1602,6 +1630,16 @@ function drawCart(){
 /* router */
 function setHeader(solid){ $("hdr").classList.toggle("solid",solid); }
 function go(h){ if(location.hash==="#"+h) route(); else location.hash=h; }
+/* Páginas de información: mismos textos de la tienda anterior de Beauty Clean, adaptados a esta tienda (pago contra entrega, atención por WhatsApp) */
+const INFO={"nosotros":{"t":"Sobre nosotros","b":["En Beauty Clean acercamos productos de cuidado personal, maquillaje y belleza seleccionados para clientes de todo Paraguay.","Queremos que cada compra sea clara y sencilla. Por eso, en cada producto mostramos qué incluye el pedido, cómo se usa, las opciones disponibles, el precio final y los tiempos estimados de entrega.","## Nuestro compromiso","- Envío gratis a todo Paraguay.","- Pago contra entrega disponible en todo el país.","- Entrega estimada de 24 a 48 horas hábiles en Asunción y Gran Asunción.","- Entrega estimada de 48 a 72 horas hábiles en el interior.","- Atención por nuestro WhatsApp oficial en días hábiles.","Los resultados de los productos cosméticos pueden variar según el tipo de piel y la forma de uso. Recomendamos seguir las indicaciones de cada producto y suspender su uso ante cualquier reacción desfavorable.","Beauty Clean es una tienda online con operación en Paraguay y no cuenta con un local de venta al público. Trabajamos para ofrecer información clara, pedidos bien preparados y una experiencia de compra segura de principio a fin."]},"envios":{"t":"Política de envíos y devoluciones","b":["En Beauty Clean queremos que sepas exactamente cómo llegará tu pedido y qué opciones de pago tenés.","## Envío gratis a todo Paraguay","Todos los pedidos realizados en la tienda online Beauty Clean incluyen envío estándar sin costo adicional.","- Asunción y Gran Asunción: 24 a 48 horas hábiles.","- Interior del país: 48 a 72 horas hábiles.","Los plazos comienzan después de confirmar el pedido y pueden variar por feriados, condiciones climáticas o disponibilidad de la transportadora. Si ocurre una demora extraordinaria, nos comunicaremos mediante los datos registrados en el pedido.","## Formas de pago","- Pago contra entrega, disponible en todo Paraguay: pagás en efectivo cuando recibís el paquete.","- Si hay otras formas de pago disponibles, las vas a ver al finalizar tu pedido.","## Dirección y recepción","Revisá que tu nombre, teléfono, ciudad, barrio, dirección y referencia estén correctos. Si la transportadora no puede ubicarte, la entrega puede requerir una nueva coordinación.","## Cambios, productos dañados o pedidos incorrectos","Si recibís un producto dañado, equivocado, incompleto o sin el regalo indicado en tu oferta, comunicate con nosotros dentro de las 48 horas posteriores a la entrega. Incluí tu número de pedido y fotografías del paquete y del producto.","Podés solicitar un cambio o devolución dentro de los 30 días posteriores a la entrega. Por razones de higiene, los cosméticos deben conservarse sin uso, cerrados, con su sello y empaque original. Esta condición no limita la atención de productos dañados, defectuosos, equivocados o incompletos.","Los productos comprados en promoción mantienen la cobertura por defectos, daños, faltantes o errores de preparación. Los reembolsos aprobados se procesan según el medio de pago utilizado.","No envíes contraseñas, códigos de seguridad ni datos completos de tarjetas."]},"terminos":{"t":"Términos y condiciones de uso","b":["Estos términos regulan el acceso, la navegación y las compras realizadas en la tienda online Beauty Clean, con operación en Paraguay.","## 1. Uso del sitio","El sitio debe utilizarse de forma legal y de buena fe. Está prohibido intentar alterar precios, datos, pedidos, sistemas de seguridad o cualquier parte del funcionamiento de la tienda.","## 2. Productos e información","Beauty Clean comercializa productos de cuidado personal, cosméticos, maquillaje y accesorios de belleza. Procuramos mostrar información e imágenes claras. La presentación, el color visto en pantalla y el empaque pueden presentar pequeñas variaciones.","Los resultados de productos cosméticos pueden variar según el tipo de piel, la frecuencia y la forma de uso. Las descripciones no sustituyen una consulta médica o dermatológica.","## 3. Disponibilidad","Todos los pedidos están sujetos a disponibilidad. Si después de confirmar una compra un producto no está disponible, nos comunicaremos para ofrecer un cambio, esperar reposición o solicitar un reembolso.","## 4. Precios y ofertas","Los precios están expresados en guaraníes paraguayos (PYG). Antes de agregar al carrito se muestra el precio correspondiente a una, dos o tres unidades, junto con cualquier regalo aplicable. Los precios ya confirmados en un pedido no se modifican posteriormente.","## 5. Pagos","Las formas de pago disponibles son las que se muestran al finalizar el pedido. Nunca solicitamos contraseñas, códigos de seguridad ni datos completos de tarjetas fuera del proceso de pago seguro.","## 6. Envíos","El envío estándar es gratis a todo Paraguay.","- Asunción y Gran Asunción: 24 a 48 horas hábiles.","- Interior del país: 48 a 72 horas hábiles.","El cliente debe proporcionar nombre, teléfono, ciudad, dirección y referencia correctos.","## 7. Cambios y devoluciones","Las solicitudes pueden realizarse dentro de los 30 días posteriores a la entrega. Por razones de higiene, los cosméticos deben estar sin uso, cerrados, con su sello y empaque original. Los productos dañados, defectuosos, equivocados, incompletos o con regalos faltantes serán atendidos según nuestra Política de envíos y devoluciones.","## 8. Uso seguro","Leé y seguí las indicaciones del producto. Cuando corresponda, realizá una prueba en una zona pequeña antes del uso general. Suspendé el uso ante una reacción desfavorable y consultá con un profesional de salud.","## 9. Propiedad intelectual","Los textos, diseños, fotografías propias, logotipos y elementos de la tienda pertenecen a Beauty Clean o a sus respectivos titulares. No está permitida su reproducción comercial sin autorización.","## 10. Contacto","Para consultas sobre productos, pedidos, entregas, cambios o devoluciones, escribinos por nuestro WhatsApp oficial e incluí tu número de pedido cuando corresponda.","## 11. Legislación aplicable","Estos términos se rigen por las leyes de la República del Paraguay. Beauty Clean podrá actualizarlos cuando sea necesario; la versión vigente será la publicada en esta página."]},"privacidad":{"t":"Política de privacidad","b":["## 1. Información que recopilamos","Podemos recopilar los siguientes datos cuando navegás o comprás en nuestra tienda:","- Datos de identificación personal (nombre, apellido, número de cédula o RUC en caso de facturación).","- Datos de contacto (correo electrónico, dirección, teléfono).","- Información de pago (procesada de manera segura a través de la plataforma de la tienda y proveedores de pago autorizados).","- Datos de navegación (cookies, dirección IP, dispositivo y páginas visitadas).","## 2. Uso de la información","La información recopilada se utiliza para:","- Procesar y confirmar pedidos de compra.","- Enviar información sobre el estado de tus pedidos y entregas.","- Ofrecer soporte y responder consultas.","- Mejorar tu experiencia de compra en nuestro sitio.","- Enviar promociones, ofertas y novedades (si das tu consentimiento).","## 3. Protección de la información","Implementamos medidas de seguridad técnicas y organizativas para proteger tu información.","No vendemos, alquilamos ni compartimos tus datos personales con terceros no autorizados.","## 4. Cookies","Utilizamos cookies para mejorar la navegación y personalizar tu experiencia en la tienda.","Podés configurar tu navegador para rechazar cookies, aunque esto puede afectar el funcionamiento del sitio.","## 5. Terceros y proveedores de servicios","Podemos compartir datos limitados con servicios de envío, pasarelas de pago y plataformas de marketing digital, únicamente para completar transacciones o mejorar el servicio.","## 6. Derechos del usuario","Como usuario tenés derecho a:","- Acceder, corregir o actualizar tus datos personales.","- Solicitar la eliminación de tu información de nuestras bases de datos.","- Retirar tu consentimiento para recibir comunicaciones comerciales.","Para ejercer estos derechos, escribinos por nuestro WhatsApp oficial.","## 7. Legislación aplicable","Esta Política se rige por las leyes de la República del Paraguay."]}};
+function viewInfo(app,k){ const I=INFO[k]; const s=el("section","info gut"); s.append(el("h1",null,I.t)); let ul=null;
+  I.b.forEach(x=>{ if(x.startsWith("## ")){ ul=null; s.append(el("h2",null,x.slice(3))); } else if(x.startsWith("- ")){ if(!ul){ ul=el("ul"); s.append(ul); } ul.append(el("li",null,x.slice(2))); } else { ul=null; s.append(el("p",null,x)); } });
+  const w=el("a","wa"); w.hidden=true; w.innerHTML=WAICO; w.append(document.createTextNode("Escribinos por WhatsApp")); w.dataset.wa="Hola, tengo una consulta sobre Beauty Clean: "; w.style.marginTop="20px"; s.append(w);
+  const b=el("a","back","Ver productos"); b.href="#productos"; s.append(el("br"),b); app.append(s); }
+/* WhatsApp: el número llega desde la tienda. Sin número, los accesos no se muestran. */
+let WA_NUM="";
+const WAICO='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-4A8 8 0 1 1 8.5 19z"/><path d="M9.5 9.2c0 2.6 2.4 5 5 5"/></svg>';
+function waSync(){ document.querySelectorAll("a[data-wa]").forEach(a=>{ const box=a.closest(".wabox,.wamini")||a; if(!WA_NUM){ box.hidden=true; return; } a.href="https://wa.me/"+WA_NUM+"?text="+encodeURIComponent(a.dataset.wa); a.target="_blank"; a.rel="noopener"; a.hidden=false; box.hidden=false; }); }
 function route(){
   const app=$("app"); app.textContent=""; document.body.classList.remove("on-product"); $("mbar").hidden=true;
   const h=(location.hash||"#inicio").slice(1);
@@ -1609,8 +1647,9 @@ function route(){
   else if(h.startsWith("p-")) viewProduct(app,h.slice(2));
   else if(h==="checkout") viewCheckout(app);
   else if(h==="gracias") viewThanks(app);
-  else { viewHome(app); if(h==="packs"){ const s=$("packs"); s&&s.scrollIntoView(); return; } }
-  window.scrollTo(0,0);
+  else if(INFO[h]) viewInfo(app,h);
+  else { viewHome(app); if(h==="packs"){ const s=$("packs"); s&&s.scrollIntoView(); waSync(); return; } }
+  waSync(); window.scrollTo(0,0);
 }
 let lastHash=location.hash;
 window.addEventListener("hashchange",()=>{ const prev=lastHash; lastHash=location.hash; if(location.hash.startsWith("#p-")&&!(prev||"").startsWith(location.hash)) sel={n:1,tone:0}; route(); });
