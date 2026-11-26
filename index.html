@@ -16,7 +16,6 @@ window.TIENDY_CONFIG = {
   /* Opcional: slug de cada producto en Tiendy si el nombre no coincide exactamente. */
   SLUGS: {}
 };
-
 </script>
 <script>
 /* Conexión con la API de storefront de Tiendy (https://www.tiendy.com.py/docs/llms-full.txt).
@@ -132,7 +131,6 @@ window.TIENDY_CONFIG = {
 
   window.TD = { on, req, uuid, allProducts, detail, imageOf, quote, checkout, order, pay, event, metaContext, loadPixel, getStore: () => req("/store"), getCities: () => req("/geo/cities"), TiendyError };
 })();
-
 </script>
 <title>Beauty Clean Black Friday</title>
 </head>
@@ -328,7 +326,22 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .li .th img{width:100%;height:100%;object-fit:cover}
 .li b{font-size:14px;display:block;line-height:1.3}
 .li .sb{font-size:12px;color:var(--muted)}
-.li .rm{background:none;border:0;padding:4px 0;font-size:12px;text-decoration:underline;color:var(--muted);cursor:pointer}
+.li .rm{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line,#E4E3E1);border-radius:999px;padding:6px 11px;font:600 12px/1 Inter,system-ui,sans-serif;color:#111;cursor:pointer;min-height:32px}
+.li .rm:hover{border-color:#111}
+.li .rm svg{width:14px;height:14px}
+.li .ctl{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:-4px}
+.sumbox .row .pz{white-space:nowrap;display:inline-flex;align-items:center}
+.sumbox .row .pz .rmx{margin-left:8px}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line,#E4E3E1);border-radius:999px;background:#fff;overflow:hidden}
+.qty button{width:32px;height:32px;border:0;background:none;font:600 16px/1 Inter,system-ui,sans-serif;color:#111;cursor:pointer}
+.qty button:disabled{color:#c8c4bf;cursor:default}
+.qty span{min-width:20px;text-align:center;font:600 13px/1 Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.undo{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#111;color:#fff;border-radius:10px;padding:10px 12px;font-size:13px}
+.undo button{background:none;border:0;color:#fff;font:700 13px/1 Inter,system-ui,sans-serif;text-decoration:underline;cursor:pointer;padding:6px 0}
+.clr{display:block;margin:10px auto 0;background:none;border:0;font:500 12px/1 Inter,system-ui,sans-serif;color:var(--muted);text-decoration:underline;cursor:pointer;padding:6px}
+.clr.sure{color:#9B2C2C;font-weight:700}
+.sumbox .row .rmx{flex:none;width:26px;height:26px;margin-left:6px;border:1px solid var(--line,#E4E3E1);border-radius:50%;background:#fff;color:#111;font:600 12px/1 Inter,system-ui,sans-serif;cursor:pointer;vertical-align:middle}
+.sumbox .row .rmx:hover{border-color:#111}
 .ups{border:1px dashed #000;border-radius:14px;padding:12px;display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center}
 .ups .th{width:56px;height:56px;border-radius:10px;background:var(--soft);overflow:hidden;display:grid;place-items:center;font-size:10px;color:var(--muted)}
 .ups .th img{width:100%;height:100%;object-fit:cover}
@@ -1409,8 +1422,9 @@ function viewCheckout(app){
 }
 function drawSum(){
   const S=$("sumbox"); if(!S) return; S.textContent=""; S.append(el("span","lbl","Tu pedido"));
-  cart.forEach(l=>{const p=byId[l.id];const r=el("div","row");r.append(el("span",null,p.short+(l.tone?" · "+l.tone:"")+" × "+l.n+(l.n===3?" + cepillo de regalo":(l.n===2&&p.pack2?" + Celimax de regalo":""))),el("span",null,gs(lineTotal(l))));S.append(r);});
-  if(bump&&BUMP.id){const r=el("div","row");r.append(el("span",null,(byId[BUMP.id].short||byId[BUMP.id].name)+" × 1 · precio especial"),el("span",null,gs(BUMP.price)));S.append(r);}
+  const rmx=(name,fn)=>{const b=el("button","rmx","✕");b.type="button";b.title="Quitar";b.setAttribute("aria-label","Quitar "+name+" del pedido");b.addEventListener("click",fn);return b;};
+  cart.forEach((l,ix)=>{const p=byId[l.id];const r=el("div","row");const pr=el("span","pz",gs(lineTotal(l)));pr.append(rmx(p.short,()=>{cart.splice(ix,1);saveCart(); if(!cart.length){bump=false;route();} else drawSum();}));r.append(el("span",null,p.short+(l.tone?" · "+l.tone:"")+" × "+l.n+(l.n===3?" + cepillo de regalo":(l.n===2&&p.pack2?" + Celimax de regalo":""))),pr);S.append(r);});
+  if(bump&&BUMP.id){const r=el("div","row");const pr=el("span","pz",gs(BUMP.price));pr.append(rmx(byId[BUMP.id].short||byId[BUMP.id].name,()=>{bump=false;const cb=$("cBump");if(cb){cb.checked=false;cb.closest(".bump")&&cb.closest(".bump").classList.remove("on");}drawSum();}));r.append(el("span",null,(byId[BUMP.id].short||byId[BUMP.id].name)+" × 1 · precio especial"),pr);S.append(r);}
   const e=el("div","row e");e.append(el("span",null,"Envío"),el("span",null,TDS.ready?"Calculando…":"Gratis"));S.append(e);
   const t=el("div","row t");t.append(el("span",null,"Total al recibir"),el("span",null,gs(cartTotal())));S.append(t);
   if(TDS.ready) tdSum(S);
@@ -1435,7 +1449,7 @@ function addToCart(id,n,tone){
   saveCart(); openCart();
   if(TDS.ready&&TDS.map[id]) TD.event("AddToCart",[{id:String(TDS.map[id].productId),quantity:n}]);
 }
-function openCart(){ drawCart(); $("scrim").hidden=false; $("drawer").hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{const x=$("drawer").querySelector(".x");x&&x.focus();},30); }
+function openCart(){ undoBuf=null; drawCart(); $("scrim").hidden=false; $("drawer").hidden=false; document.body.style.overflow="hidden"; setTimeout(()=>{const x=$("drawer").querySelector(".x");x&&x.focus();},30); }
 function closeCart(){ $("scrim").hidden=true; $("drawer").hidden=true; document.body.style.overflow=""; }
 $("scrim").addEventListener("click",closeCart);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("drawer").hidden)closeCart();});
@@ -1446,7 +1460,7 @@ function crossPicks(max){
   for(const cid of ["cepillo","lipshot","ojos","althea147"]){ if(out.length>=max) break; if(!inCart.has(cid)&&!out.includes(cid)) out.push(cid); }
   return out.map(id=>byId[id]).filter(Boolean);
 }
-let downsell=null;
+let downsell=null, undoBuf=null;
 function drawCart(){
   const d=$("drawer"); d.textContent="";
   const h=el("div","dh"); const t=el("h2",null,"Tu carrito"); t.id="dT"; const x=el("button","x","✕"); x.type="button"; x.setAttribute("aria-label","Cerrar carrito"); x.addEventListener("click",closeCart); h.append(t,x); d.append(h);
@@ -1454,6 +1468,9 @@ function drawCart(){
   if(TDS.ready){ const need=cart.filter(l=>!TDS.qp[l.id]).map(l=>l.id); if(need.length) Promise.all(need.map(ensureTiers)).then(r=>{ if(r.some(Boolean)&&!$("drawer").hidden) drawCart(); }); }
   if(downsell && !cart.some(l=>l.id===downsell.id)){ const p=byId[downsell.id]; const box=el("div","dsell"); box.append(el("b",null,"¿Preferís probar primero con 1 unidad?"), el("span",null,p.short+" a "+gs(p.price)+". Si te gusta, después volvés por más."));
     const bb=el("button","addbtn","Sí, llevar 1 unidad"); bb.type="button"; bb.addEventListener("click",()=>{cart.push({id:p.id,n:1,tone:downsell.tone}); downsell=null; saveCart(); drawCart();}); box.append(bb); body.append(box); }
+  if(undoBuf){ const u=el("div","undo"); u.setAttribute("role","status"); u.append(el("span",null,undoBuf.msg)); const ub=el("button",null,"Deshacer"); ub.type="button";
+    ub.addEventListener("click",()=>{ undoBuf.items.slice().sort((a,b)=>a.ix-b.ix).forEach(({l,ix})=>cart.splice(Math.min(ix,cart.length),0,l)); if(downsell&&cart.some(x=>x.id===downsell.id)) downsell=null; undoBuf=null; saveCart(); drawCart(); });
+    u.append(ub); body.append(u); }
   if(!cart.length){ body.append(el("p","empty","Tu carrito está vacío.")); return; }
   const units=cart.reduce((a,l)=>a+l.n,0);
   // upsell: subir de pack
@@ -1469,8 +1486,15 @@ function drawCart(){
   const bar=el("div","bar"); const i=el("i"); i.style.width=(has3?100:Math.min(100,Math.max(...cart.map(l=>l.n))/3*100))+"%"; bar.append(i); gift.append(bar); body.append(gift);
   cart.forEach((l,ix)=>{ const p=byId[l.id]; const r=el("div","li"); const th=el("div","th"); photo(th,"p-"+p.id,"Foto",{noup:true});
     const m=el("div"); m.append(el("b",null,p.short)); m.append(el("span","sb",(l.tone?l.tone+" · ":"")+(l.special!=null?"Precio especial del carrito":(l.n===1?"1 unidad":l.n+" unidades"+(l.n===3?" + cepillo de regalo":" · 30% menos"+(p.pack2?" + Celimax 15 ml de regalo":""))))));
-    const rm=el("button","rm","Quitar"); rm.type="button"; rm.addEventListener("click",()=>{ if(l.n>=2&&l.special==null) downsell={id:l.id,tone:l.tone}; cart.splice(ix,1);saveCart();drawCart();}); m.append(document.createElement("br"),rm);
-    r.append(th,m,el("b",null,gs(lineTotal(l)))); body.append(r); });
+    const ctl=el("div","ctl");
+    if(l.special==null){ const q=el("div","qty"); q.setAttribute("role","group"); q.setAttribute("aria-label","Cantidad de "+p.short);
+      const mi=el("button",null,"−"); mi.type="button"; mi.setAttribute("aria-label","Restar una unidad"); mi.disabled=l.n<=1; mi.addEventListener("click",()=>{ l.n--; undoBuf=null; saveCart(); drawCart(); });
+      const pl=el("button",null,"+"); pl.type="button"; pl.setAttribute("aria-label","Sumar una unidad"); pl.disabled=l.n>=3; pl.addEventListener("click",()=>{ l.n++; undoBuf=null; saveCart(); drawCart(); });
+      q.append(mi,el("span",null,String(l.n)),pl); ctl.append(q); }
+    const rm=el("button","rm"); rm.type="button"; rm.setAttribute("aria-label","Eliminar "+p.short+" del carrito");
+    rm.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>'; rm.append(document.createTextNode("Eliminar"));
+    rm.addEventListener("click",()=>{ if(l.n>=2&&l.special==null) downsell={id:l.id,tone:l.tone}; undoBuf={items:[{l,ix}],msg:"Eliminaste "+p.short+"."}; cart.splice(ix,1);saveCart();drawCart();}); ctl.append(rm);
+    r.append(th,m,el("b",null,gs(lineTotal(l))),ctl); body.append(r); });
   const picks=crossPicks(2);
   if(picks.length){ const wrap=el("div","ups-wrap"); wrap.append(el("span","k","COMPLETÁ TU RUTINA"));
     picks.forEach(u=>{ const box=el("div","ups"); const th=el("div","th"); photo(th,"p-"+u.id,"Foto",{noup:true});
@@ -1481,7 +1505,10 @@ function drawCart(){
   const f=el("div","df"); const sb=el("div","row"); sb.append(el("span",null,"Subtotal ("+units+(units===1?" unidad)":" unidades)")),el("span",null,gs(cart.reduce((a,l)=>a+lineTotal(l),0))));
   const en=el("div","row"); en.append(el("span",null,"Envío"),el("span",null,TDS.ready?"Se calcula al finalizar":"Gratis"));
   const go2=el("button","addbtn","Finalizar pedido · Pagás al recibir"); go2.type="button"; go2.addEventListener("click",()=>{closeCart();go("checkout");});
-  f.append(sb,en,go2); d.append(f);
+  const clr=el("button","clr","Vaciar carrito"); clr.type="button"; let sure=false;
+  clr.addEventListener("click",()=>{ if(!sure){ sure=true; clr.classList.add("sure"); clr.textContent="¿Seguro? Tocá de nuevo para vaciar"; setTimeout(()=>{ if(clr.isConnected){ sure=false; clr.classList.remove("sure"); clr.textContent="Vaciar carrito"; } },4000); return; }
+    undoBuf={items:cart.map((l,ix)=>({l,ix})),msg:"Vaciaste el carrito."}; cart=[]; bump=false; downsell=null; saveCart(); drawCart(); });
+  f.append(sb,en,go2,clr); d.append(f);
 }
 
 /* router */
