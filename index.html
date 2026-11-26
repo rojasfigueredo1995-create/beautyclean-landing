@@ -897,17 +897,18 @@ async function tdInit(){
     rerender();
   }catch(e){ console.warn("Tiendy no disponible:",e&&e.message); }
 }
+const tcase=t=>String(t||"").toLowerCase().replace(/(^|[\s.\-(])([a-záéíóúñü])/g,(m,a,b)=>a+b.toUpperCase()).replace(/ (De|Del|La|Las|Los|Y) /g,m=>m.toLowerCase());
 function tdCheckoutFields(fm){
   if(!TDS.ready) return;
   const C=TDS.cities;
   if(C&&C.departments&&C.cities){
     const dep=fm.querySelector("#cDep"), old=fm.querySelector("#cCiu");
     dep.textContent=""; dep.append(new Option("Elegí tu departamento",""));
-    C.departments.forEach(d=>dep.append(new Option(d.name.charAt(0)+d.name.slice(1).toLowerCase(),d.code)));
+    C.departments.forEach(d=>dep.append(new Option(tcase(d.name),d.code)));
     if(form.cDep&&C.departments.some(d=>d.code===form.cDep)) dep.value=form.cDep; else form.cDep="";
     const ciu=el("select"); ciu.id="cCiu";
     const fill=()=>{ ciu.textContent=""; ciu.append(new Option(dep.value?"Elegí tu ciudad":"Primero elegí el departamento",""));
-      C.cities.filter(c=>c.departmentCode===dep.value).forEach(c=>ciu.append(new Option(c.name.charAt(0)+c.name.slice(1).toLowerCase(),c.code)));
+      C.cities.filter(c=>c.departmentCode===dep.value).forEach(c=>ciu.append(new Option(tcase(c.name),c.code)));
       if(form.cCiu&&[...ciu.options].some(o=>o.value===form.cCiu)) ciu.value=form.cCiu; else form.cCiu=""; };
     fill(); old.replaceWith(ciu);
     dep.addEventListener("change",()=>{form.cDep=dep.value; fill(); drawSum();});
@@ -955,7 +956,8 @@ async function tdSum(S){
     const row=(a,b,c)=>{const r=el("div","row "+(c||"q")); r.append(el("span",null,a),el("span",null,b)); S.append(r);};
     if(q.bundleSavings) row("Ahorro por packs","− "+gs(q.bundleSavings));
     if(q.couponDiscount) row("Cupón","− "+gs(q.couponDiscount));
-    if(q.paymentAdjustment) row("Ajuste por forma de pago",(q.paymentAdjustment>0?"+ ":"− ")+gs(Math.abs(q.paymentAdjustment)));
+    const pa=q.paymentAdjustment&&typeof q.paymentAdjustment==="object"?Number(q.paymentAdjustment.amount)||0:Number(q.paymentAdjustment)||0;
+    if(pa) row(pa<0?"Descuento por forma de pago":"Recargo por forma de pago",(pa>0?"+ ":"− ")+gs(Math.abs(pa)));
     row("Envío",q.shippingPrice?gs(q.shippingPrice):"Gratis","e");
     row("Total",gs(q.total),"t");
     const ct=document.getElementById("coTot"); if(ct) ct.querySelector("b").textContent=gs(q.total);
