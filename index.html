@@ -593,6 +593,16 @@ footer .logo{color:#fff;font-size:30px}
 .paybtn[disabled]{opacity:.6;cursor:progress}
 .wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#000;color:#fff;border-radius:999px;padding:14px 22px;text-decoration:none;font-weight:500;min-height:50px}
 
+/* v15: carrusel de videos propios */
+.vsec{display:none}.vsec.on{display:block}
+.vrail{display:grid;grid-auto-flow:column;grid-auto-columns:64%;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;margin-top:16px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+@media (min-width:760px){.vrail{grid-auto-columns:250px}}
+.vcard{position:relative;scroll-snap-align:start;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#1a1a1a}
+.vcard video{width:100%;height:100%;object-fit:cover;display:block}
+.vcard .vplay{position:absolute;inset:0;margin:auto;width:62px;height:62px;border-radius:50%;border:0;background:rgba(255,255,255,.92);display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.vcard .vplay svg{margin-left:4px}
+.vcard.playing .vplay{display:none}
+.vhint{margin:8px 0 0;font-size:14px;color:#625D58}
 /* v14: gancho, entrega y checkout según los datos de compradoras (99% celular, 94% no agrega al carrito, 39% abandona en el pago) */
 .phook{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;letter-spacing:normal}
 .phook .h{margin:0;font-weight:700;font-size:clamp(23px,5.8vw,34px);line-height:1.15;letter-spacing:-.8px;color:#000;text-wrap:balance}
@@ -1394,6 +1404,7 @@ function viewProduct(app,id){
   const add=el("button","ilcart","Añadir al carrito"); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,tone())); inf.append(add);
   const g=el("p","ilg"); g.append(el("b",null,"Cambios: "), document.createTextNode("hasta 30 días con el producto sin uso y cerrado.")); inf.append(g);
   w.append(inf); app.append(w);
+  videoRail(app,p);
 
   const CT=CONT[p.id];
   if(CT){ const bl=[[CT.aud,CT.q,CT.ctx,CT.a],["Dónde se aplica",CT.zt,CT.zp,CT.b],["Qué podés esperar",CT.et,CT.ep,CT.c]];
@@ -1422,6 +1433,24 @@ function viewProduct(app,id){
 
   if(TDS.ready){ ensureTiers(p.id).then(ch=>{ if(ch&&location.hash==="#p-"+p.id) rerender(); }); if(TDS.map[p.id]) TD.event("ViewContent",[{id:String(TDS.map[p.id].productId),quantity:1}]); }
   const mb=$("mbar"); mb.hidden=false; mb.textContent=""; const mbb=el("button","ilsticky"); mbb.append(el("b",null,"Pedir ahora · "+gs(packPrice(p,sel.n))), el("span",null,(sel.n===1?"1 unidad":sel.n+" unidades")+" · Envío gratis · Pagás al recibir")); mbb.type="button"; mbb.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); mb.append(mbb);
+}
+/* Videos propios de cada producto. Se muestran solos cuando existen los archivos
+   {id}-v1.mp4, {id}-v2.mp4 … (hasta 6) en la misma carpeta que las fotos. Sin archivos, la sección no aparece. */
+function videoRail(app,p){
+  const i=ilSec(app,"En video","Mirá cómo se usa",null); const s=i.closest("section"); s.classList.add("vsec");
+  const r=el("div","vrail"); i.append(r); const hint=el("p","vhint","Tocá un video para verlo con sonido. Deslizá para ver más."); i.append(hint);
+  let n=0; const here=()=>location.hash==="#p-"+p.id&&s.isConnected;
+  const add=()=>{ if(n>=6||!here()) return; const k=++n;
+    const v=document.createElement("video"); v.setAttribute("playsinline",""); v.playsInline=true; v.preload="metadata"; v.setAttribute("aria-label","Video "+k+": "+(p.short||p.name));
+    v.addEventListener("error",()=>{ v.removeAttribute("src"); },{once:true});
+    v.addEventListener("loadedmetadata",()=>{ if(!here()) return; const c=el("div","vcard"); const b=el("button","vplay"); b.type="button"; b.setAttribute("aria-label","Reproducir video "+k);
+      b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="#111" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg>';
+      b.addEventListener("click",()=>{ v.controls=true; v.play().catch(()=>{}); });
+      v.addEventListener("play",()=>{ c.classList.add("playing"); r.querySelectorAll("video").forEach(o=>{ if(o!==v) o.pause(); }); });
+      v.addEventListener("ended",()=>{ c.classList.remove("playing"); v.controls=false; });
+      c.append(v,b); r.append(c); s.classList.add("on"); hint.hidden=r.children.length<2; add(); },{once:true});
+    v.src=p.id+"-v"+k+".mp4#t=0.1"; };
+  setTimeout(add,900);
 }
 function rerenderKeep(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
 let bump=false, form={};
