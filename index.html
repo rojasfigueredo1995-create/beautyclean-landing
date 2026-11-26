@@ -579,6 +579,49 @@ footer .logo{color:#fff;font-size:30px}
 .paybtn.card{background:#fff;color:#000;border:1.5px solid #000}
 .paybtn[disabled]{opacity:.6;cursor:progress}
 .wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#000;color:#fff;border-radius:999px;padding:14px 22px;text-decoration:none;font-weight:500;min-height:50px}
+
+/* v12: portada para 35 a 70, escenas, cómo comprar, ángulos, antes y después */
+.hero .hk{margin:0;font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#fff;opacity:.9}
+.banner2b.light{color:#111;background:#EFE9E1}
+.banner2b.light::after{display:none}
+.banner2b.light .bgimg img{object-position:50% 100%}
+.banner2b.light h2{color:#111}.banner2b.light p{color:#3B3733}
+.banner2b.light .btn-o{color:#111;border-color:#111}
+.btn-o.dark{color:#111;border-color:#111;align-self:flex-start}
+.lpbig span{text-shadow:0 1px 10px rgba(0,0,0,.45)}
+.age .kicker{margin:0 0 6px}.age h2{margin:0 0 8px;font-weight:600;letter-spacing:-.9px;font-size:clamp(26px,3.4vw,40px);line-height:1.1}
+.age .lead2{margin:0 0 22px;color:#625D58;font-size:17px;max-width:640px}
+.agegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.agegrid{grid-template-columns:minmax(0,1fr)}}
+.agecard{background:#F5F3EF;border:1px solid #E4E3E1;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.agecard .ae{align-self:flex-start;background:#000;color:#fff;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.agecard h3{margin:4px 0 0;font-size:21px;font-weight:600;letter-spacing:-.5px}
+.agecard p{margin:0;color:#625D58;font-size:15px;line-height:1.5}
+.agecard ul{list-style:none;margin:4px 0 6px;padding:0;display:flex;flex-direction:column;gap:6px}
+.agecard li{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #E4E3E1;padding-top:8px;font-size:14px}
+.agecard li a{color:#111;font-weight:500}.agecard li span{color:#625D58;white-space:nowrap}
+.hbsteps{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.hbsteps{grid-template-columns:minmax(0,1fr)}}
+.hbsteps li{display:flex;gap:12px;align-items:flex-start;background:#F5F3EF;border-radius:16px;padding:16px}
+.hbsteps .n{flex:none;width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+.hbsteps b{display:block;font-size:15px;font-weight:600;margin-bottom:4px}.hbsteps p{margin:0;color:#625D58;font-size:14px;line-height:1.45}
+.hbzones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+@media (max-width:640px){.hbzones{grid-template-columns:minmax(0,1fr)}}
+.hbzones div{border:1px solid #E4E3E1;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:2px}
+.hbzones b{font-size:14px}.hbzones span{color:#625D58;font-size:14px}
+.ilang{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.ilang{grid-template-columns:minmax(0,1fr)}}
+.ilang div{background:#F5F3EF;border-radius:16px;padding:18px;border-left:3px solid #000}
+.ilang b{display:block;font-size:16px;font-weight:600;margin-bottom:6px;line-height:1.3}.ilang p{margin:0;color:#625D58;font-size:14.5px;line-height:1.5}
+.ba{margin:0 0 16px}
+.babox{position:relative;aspect-ratio:1;border-radius:16px;overflow:hidden;background:#F5F3EF;touch-action:pan-y}
+.babox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.baline{position:absolute;top:0;bottom:0;width:2px;background:#fff;transform:translateX(-1px);pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.baline::after{content:"↔";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.babox input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.batag{position:absolute;top:12px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:5px 10px;pointer-events:none}
+.batag.l{left:12px}.batag.r{right:12px}
+.ba figcaption{margin-top:8px;color:#625D58;font-size:14px}
 </style>
 
 <header class="hdr gut" id="hdr">
@@ -722,7 +765,7 @@ const RUT={
  ojos:{para:"Para bolsas, líneas y mirada cansada. Efecto tensor temporal que alisa el contorno.",zona:"Contorno de ojos",cuando:"De día, sobre la piel limpia y seca, antes del maquillaje",comp:["base","pestanas","retinol"],motivo:"Para bolsas y líneas alrededor de los ojos"},
  lipshot:{para:"Para labios secos, ásperos o agrietados. Los hidrata y los suaviza.",zona:"Labios",cuando:"De día antes del labial, o de noche antes de dormir",comp:["base","ojos","pestanas"],motivo:"Labios hidratados y suaves"},
  base:{para:"Para unificar el tono con una cobertura ligera a media y acabado natural.",zona:"Rostro",cuando:"De día, después de tu crema, a toquecitos con el puff",comp:["ojos","lipshot","pestanas"],motivo:"Base liviana de acabado natural"},
- pestanas:{para:"Para realzar la mirada sin pegamento. Se colocan con imán en segundos.",zona:"Pestañas",cuando:"Cuando quieras un look especial",comp:["ojos","base","lipshot"],motivo:"Mirada realzada en segundos"},
+ pestanas:{para:"Para realzar la mirada sin pegamento. Se colocan con imán en segundos.",zona:"Pestañas",cuando:"Cuando quieras un look especial",comp:["ojos","base","lipshot"],motivo:"Mirada realzada sin pegamento"},
  cepillo:{para:"Para el rostro hinchado o cansado. Un masaje suave que ayuda a aplicar mejor tus cremas.",zona:"Rostro, mandíbula y cuello",cuando:"1 vez al día, 3 a 5 minutos sobre la piel seca, antes de tus cremas",comp:["beevenom","pdrn","althea147"],motivo:"Masaje facial que potencia tus cremas"}
 };
 const HOMEIMG={hero:"base-7.jpg",banner1:"pdrn-0.jpg",banner2:"retinol-0.jpg",best:"althea147-0.jpg",nov:"pestanas-0.jpg","cat-antiedad":"celimax-0.jpg","cat-hidratacion":"manchas-0.jpg","cat-ojoslabios":"lipshot-3.jpg","cat-maquillaje":"base-5.jpg","cat-herramientas":"cepillo-4.jpg","bub-antiedad":"celimax-0.jpg","bub-hidratacion":"manchas-0.jpg","bub-ojoslabios":"pestanas-0.jpg","bub-maquillaje":"base-7.jpg","bub-herramientas":"cepillo-4.jpg"};
@@ -926,8 +969,8 @@ const pt=$("pillTr"); for(let i=0;i<4;i++) pillTxt.forEach(t=>pt.append(el("span
 function photo(box,key,label,opts){
   opts=opts||{};
   box.querySelectorAll(":scope > .ph, :scope > img, :scope > .up, :scope > .bgimg").forEach(n=>n.remove());
-  const id=photos[key]; const ext=!id&&((typeof HOMEIMG!=="undefined"&&HOMEIMG[key])||key.slice(0,2)==="p-"&&((typeof IMGN!=="undefined"&&IMGN[key.slice(2)])?key.slice(2)+"-0.jpg":(TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img)));
-  if(id||ext){ const im=el("img"); im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
+  const id=photos[key]; const scn=!id&&key.slice(0,2)==="p-"&&typeof PACKS!=="undefined"&&PACKS.has(key.slice(2)); const ext=!id&&!scn&&((typeof HOMEIMG!=="undefined"&&HOMEIMG[key])||key.slice(0,2)==="p-"&&((typeof IMGN!=="undefined"&&IMGN[key.slice(2)])?key.slice(2)+"-0.jpg":(TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img)));
+  if(id||ext||scn){ const im=el("img"); if(scn) sceneInto(im,key.slice(2),"hero"); else im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
   else if(!opts.noph){ const ph=el("div","ph"); ph.innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-7 7"/></svg>'; ph.append(el("span",null,label)); box.prepend(ph); }
   if(canEdit&&assets&&!opts.noup){ const b=el("button","up",id?"Cambiar foto":"Subir foto"); b.type="button"; b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();pick(key,b);}); if(opts.upTarget) opts.upTarget.append(b); else box.append(b); }
 }
@@ -954,18 +997,103 @@ function rail(ids){ const r=el("div","rail prods"); ids.forEach(id=>r.append(car
 function secHead(title,count,link){ const h=el("div","sh"); const t=el("h2",null,title); if(count){const s=el("sup",null,String(count)); t.append(s);} h.append(t); if(link){const a=el("a",null,"Ver todo ›"); a.addEventListener("click",()=>go(link)); h.append(a);} return h; }
 
 /* vistas */
+
+/* escenas: imágenes con la paleta de la página, armadas con los recortes de producto */
+const _scn={};
+function wrapLines(x,t,maxW){ const w=String(t).split(" "); const L=[]; let cur=""; w.forEach(s=>{ const tt=cur?cur+" "+s:s; if(x.measureText(tt).width>maxW&&cur){ L.push(cur); cur=s; } else cur=tt; }); if(cur) L.push(cur); return L; }
+function sceneImage(k,type,W,H){ W=W||1000; H=H||1000; const ids=Array.isArray(k)?k:[k]; const key=ids.join("+")+":"+type+":"+W+"x"+H; if(_scn[key]) return _scn[key];
+  return _scn[key]=(async()=>{
+    try{ await Promise.all([document.fonts.load('600 42px Inter'),document.fonts.load('400 26px Inter')]); }catch(e){}
+    const c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+    const ims=await Promise.all(ids.map(cutout)); const p=byId[ids[0]]||{}; const CT=CONT[ids[0]]||{};
+    const dark=type==="dark";
+    const g=x.createLinearGradient(0,0,0,H);
+    if(dark){ g.addColorStop(0,"#76655B"); g.addColorStop(1,"#D9CABC"); } else { g.addColorStop(0,"#F8F6F2"); g.addColorStop(1,"#E9E1D6"); }
+    x.fillStyle=g; x.fillRect(0,0,W,H);
+    const circ=(cx,cy,r,col)=>{ x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.fillStyle=col; x.fill(); };
+    const put=(img,cx,b,h)=>{ const w=h*img.width/img.height;
+      x.save(); x.shadowColor=dark?"rgba(40,28,20,.45)":"rgba(60,45,35,.33)"; x.shadowBlur=2*(w*0.06+6); x.shadowOffsetY=5000; x.fillStyle="#000";
+      x.beginPath(); x.ellipse(cx,b-5000,w*0.55,w*0.07,0,0,Math.PI*2); x.fill(); x.restore();
+      x.drawImage(img,cx-w/2,b-h,w,h); };
+    const fitH=(img,mw,mh)=>Math.min(mh, mw*img.height/img.width);
+    x.textBaseline="top";
+    const F=(w,sz)=>w+" "+sz+"px Inter, system-ui, sans-serif";
+    if(type==="hero"||type==="dark"||type==="group"){
+      const n=ims.length, cx0=W/2, area=(type==="group"?0.5:0.8)*W, baseY=H*(type==="group"?0.95:0.86), maxH=H*(type==="group"?0.36:(n>1?0.58:0.66));
+      circ(cx0,baseY-maxH*0.52,Math.min(W*0.42,maxH*0.78),dark?"rgba(255,255,255,.12)":"#EFE8DE");
+      const slot=area/n; const order=n===3?[0,2,1]:[...Array(n).keys()];
+      order.forEach(i=>{ const im=ims[i]; const mid=n===3&&i===1; const h=fitH(im,slot*(n>1?1.15:1),maxH*(mid||n<3?1:0.88)); put(im,cx0-area/2+slot*(i+0.5),baseY-(n===3&&!mid?H*0.02:0),h); });
+      if(type==="hero"){ x.fillStyle="#8A5B4D"; x.font=F(600,Math.round(W*0.019)); x.fillText("BEAUTY CLEAN",W*0.07,H*0.066); }
+    } else {
+      const im=ims[0]; const pcx=W*0.74;
+      circ(pcx,H*0.55,W*0.25,"#EFE8DE"); put(im,pcx,H*0.84,fitH(im,W*0.36,H*0.56));
+      const X=W*0.07, MW=W*0.52; let Y=H*0.11;
+      const kick=t=>{ x.fillStyle="#8A5B4D"; x.font=F(600,20); wrapLines(x,String(t).toUpperCase(),MW).forEach(l=>{ x.fillText(l,X,Y); Y+=28; }); Y+=14; };
+      const head=(t,sz)=>{ x.fillStyle="#111"; x.font=F(600,sz); wrapLines(x,t,MW).forEach(l=>{ x.fillText(l,X,Y); Y+=sz*1.18; }); Y+=22; };
+      const item=(mark,t)=>{ x.font=F(400,27); const L=wrapLines(x,t,MW-56); x.fillStyle="#111"; x.beginPath(); x.arc(X+16,Y+16,16,0,Math.PI*2); x.fill(); x.fillStyle="#fff"; x.font=F(600,mark.length>1?15:18); const mw=x.measureText(mark).width; x.fillText(mark,X+16-mw/2,Y+(mark.length>1?8:6)); x.fillStyle="#3B3733"; x.font=F(400,27); L.forEach(l=>{ x.fillText(l,X+50,Y); Y+=36; }); Y+=18; };
+      if(type==="age"){ kick(CT.aud||"Pensado para vos"); head(CT.q||PKNAME[ids[0]],52); x.fillStyle="#625D58"; x.font=F(400,26); wrapLines(x,"Envío gratis a todo Paraguay · Pagás al recibir",MW).forEach(l=>{ x.fillText(l,X,Y); Y+=34; }); }
+      else if(type==="ben"){ kick(PKNAME[ids[0]]||""); head("Lo que vas a notar",48); (p.bens||[]).slice(0,4).forEach(([t])=>item("✓",t)); }
+      else if(type==="use"){ kick(PKNAME[ids[0]]||""); head("Cómo se usa",48); (p.steps||[]).slice(0,4).forEach(([t],i)=>item(String(i+1),t)); }
+      else if(type==="ship"){ kick("Comprás desde tu casa"); head("Sin tarjeta y con envío gratis",46); ["Envío gratis a todo Paraguay","Pagás en efectivo al recibir","Te confirmamos por WhatsApp","Cambios hasta 30 días"].forEach(t=>item("✓",t)); }
+    }
+    return await new Promise(res=>c.toBlob(b=>res(URL.createObjectURL(b)),"image/jpeg",0.88));
+  })(); }
+function sceneInto(im,k,type,W,H){ sceneImage(k,type,W,H).then(u=>{ im.src=u; }).catch(()=>{}); return im; }
+function sceneImg(k,type,W,H,alt){ const im=el("img"); im.alt=alt||""; return sceneInto(im,k,type,W,H); }
+const GALLERY=["hero","age","ben","use","ship"];
+const CATPROD={antiedad:"retinol",hidratacion:"althea147",ojoslabios:"lipshot",maquillaje:"base",herramientas:"cepillo"};
+
+/* ángulos de venta por producto */
+const ANG={
+ retinol:[["Si el maquillaje te marca las líneas","Con uso constante de noche, el retinol ayuda a que la textura se vea más pareja y la base se asiente mejor."],["Si querés un solo paso antiedad","Unas gotas de noche antes de tu crema. Sin rutinas largas ni complicadas."],["Si es tu primera vez con retinol","Empezá 2 o 3 noches por semana y usá protector solar de día. Tu piel se acostumbra de a poco."]],
+ celimax:[["Si querés probar el retinal sin miedo","0,1% de retinal en 15 ml, ideal para empezar de a poco."],["Si tu piel se ve sin luz","Con uso constante de noche ayuda a renovar visualmente la piel."],["Si buscás algo práctico","Un tamaño cómodo para sumar a tu rutina de noche."]],
+ althea147:[["Si tu piel tira después de lavarla","Hidratación multicapa con sensación de confort todo el día."],["Si tu piel se enrojece con facilidad","Con guayazuleno, ayuda a calmar la sensación de irritación."],["Si no te gustan las cremas pesadas","Textura gel-crema que se absorbe rápido y no deja la piel grasosa."]],
+ lipshot:[["Si tus labios se ven más finos que antes","Hidratación intensa que los deja visiblemente más suaves y cuidados."],["Si el labial se te cuartea","Aplicalo antes del labial para una superficie más lisa."],["Si buscás un mimo antes de dormir","De noche, como tratamiento nutritivo para tus labios."]],
+ beevenom:[["Si notás el rostro menos firme","Con veneno de abeja y ácido hialurónico, ayuda a mejorar la apariencia de firmeza."],["Si el cuello también te preocupa","Se aplica en rostro y cuello, mañana o noche."],["Si querés una crema que haga más","Hidrata, suaviza y aporta luminosidad en un solo paso."]],
+ althea345:[["Si tenés rojeces o marquitas","Niacinamida y ceramidas para una piel de aspecto más uniforme."],["Si tu piel se volvió más sensible","Ayuda a fortalecer la barrera de la piel y a calmarla."],["Si querés una crema para todos los días","Mañana y noche, después del sérum."]],
+ manchas:[["Si las manchas del sol te hacen ver mayor","Arbutina, ácido tranexámico y niacinamida ayudan a unificar el tono."],["Si tapás las manchas con mucho maquillaje","Con un tono más parejo, necesitás menos base."],["Si sos constante","Mañana y noche, con protector solar de día, para ver el cambio de a poco."]],
+ pdrn:[["Si tu piel se ve cansada aunque descanses","Aporta hidratación y ayuda a mejorar la luminosidad."],["Si querés que tu crema rinda más","2 a 3 gotas antes de la crema preparan la piel."],["Si no toleras texturas pegajosas","Textura ligera de rápida absorción."]],
+ pestanas:[["Si tus pestañas se ven más cortas con los años","Una mirada más marcada sin extensiones ni pegamento."],["Si el pegamento te irrita","Se colocan con imán y se retiran fácil."],["Si tenés un evento","Reutilizables: las usás cada vez que quieras."]],
+ cepillo:[["Si te levantás con el rostro hinchado","Un masaje suave de 3 a 5 minutos ayuda a reducir la apariencia de hinchazón."],["Si querés aprovechar más tus cremas","Masajeá antes de aplicarlas, como parte de tu rutina."],["Si buscás un momento para vos","Cerdas suaves, pensadas para piel sensible y madura."]],
+ balsamo:[["Si te preocupan las líneas de la frente","Hidratación en barra para frente, entrecejo y surcos."],["Si querés retocarte fuera de casa","Formato práctico para llevar en la cartera."],["Si tu piel se reseca con los años","Ayuda a que la piel se vea más suave y luminosa."]],
+ base:[["Si la base te marca las arrugas","Cobertura ligera a media con acabado natural."],["Si no encontrás tu tono","Elegís entre Bronceado, Natural y Marfil."],["Si querés maquillarte rápido","Se aplica a toquecitos con el puff, sin complicarte."]]
+};
+
+/* antes y después: solo con fotos reales de clientas, con su permiso */
+const BA={}; /* ejemplo: retinol:[{a:"ba/retinol-ana-antes.jpg",d:"ba/retinol-ana-despues.jpg",cap:"Ana, 52 años · 6 semanas de uso"}] */
+function baSlider(o){
+  const w=el("figure","ba"); const box=el("div","babox");
+  const d=el("img"); d.src=o.d; d.alt="Después"; const a=el("img","bafore"); a.src=o.a; a.alt="Antes";
+  const line=el("span","baline"); const r=el("input"); r.type="range"; r.min="0"; r.max="100"; r.value="50"; r.setAttribute("aria-label","Deslizá para comparar antes y después");
+  const set=v=>{ a.style.clipPath="inset(0 "+(100-v)+"% 0 0)"; line.style.left=v+"%"; }; r.addEventListener("input",()=>set(+r.value)); set(50);
+  box.append(d,a,line,r,el("span","batag l","Antes"),el("span","batag r","Después")); w.append(box);
+  if(o.cap) w.append(el("figcaption",null,o.cap)); return w;
+}
+
+/* cómo comprar en Paraguay */
+function howBuy(app,kick,title){
+  const s=el("section","ilsec gut hbuy"); const i=el("div","in"); s.append(i);
+  i.append(el("p","kicker",kick||"Comprar es fácil y seguro"), el("h2",null,title||"Envío gratis a todo Paraguay y pagás al recibir"));
+  i.append(el("p","lead2","No necesitás tarjeta ni pagar por adelantado. Pedís desde tu celular, te confirmamos por WhatsApp y pagás en efectivo cuando el pedido llega a tu casa."));
+  const g=el("ol","hbsteps");
+  [["Elegí tu producto y tu pack","1, 2 o 3 unidades: cuantas más llevás, más ahorrás."],["Completá tus datos","Nombre, WhatsApp, ciudad y dirección. Sin tarjeta."],["Te confirmamos por WhatsApp","Te escribimos para confirmar el pedido y coordinar la entrega."],["Recibís y pagás en tu casa","Pagás en efectivo al recibir. El envío no tiene costo."]].forEach(([t,d],k)=>{ const li=el("li"); li.append(el("span","n",String(k+1))); const x=el("div"); x.append(el("b",null,t), el("p",null,d)); li.append(x); g.append(li); });
+  i.append(g);
+  const z=el("div","hbzones");
+  [["Asunción y Gran Asunción","24 a 48 horas hábiles"],["Interior del país","48 a 72 horas hábiles"],["Cambios","Hasta 30 días, sin uso y cerrado"]].forEach(([t,d])=>{ const x=el("div"); x.append(el("b",null,t), el("span",null,d)); z.append(x); });
+  i.append(z); app.append(s); return i;
+}
 function lpSlider(title,ids,img,cap){
   const s=el("section","sec gut lps"); s.append(secHead(title,ids.length,"productos"));
   const r=el("div","lprail");
-  const big=el("button","lpbig"); big.type="button"; const im=el("img"); im.src=img; im.alt=""; im.loading="lazy"; big.append(im, el("span",null,cap)); big.addEventListener("click",()=>go("productos")); r.append(big);
+  const big=el("button","lpbig"); big.type="button"; const im=Array.isArray(img)?sceneImg(img,"dark",750,1000):el("img"); if(!Array.isArray(img)){ im.src=img; im.loading="lazy"; } im.alt=""; big.append(im, el("span",null,cap)); big.addEventListener("click",()=>go("productos")); r.append(big);
   ids.forEach(id=>{ if(byId[id]) r.append(card(byId[id])); });
   const pg=el("div","lpbar"); const fill=el("i"); pg.append(fill);
   const upd=()=>{ const m=r.scrollWidth-r.clientWidth; const v=r.clientWidth/r.scrollWidth; fill.style.width=(v*100)+"%"; fill.style.left=(m>0?(r.scrollLeft/m)*(100-v*100):0)+"%"; };
   r.addEventListener("scroll",upd,{passive:true}); requestAnimationFrame(upd); setTimeout(upd,400);
   s.append(r,pg); return s;
 }
-function heroBanner(key,t,p,btn,link){
-  const w=el("section","gut hb"); const ban=el("div","banner2b"); photo(ban,key,"",{wrap:true,noph:true,noup:true});
+function heroBanner(key,t,p,btn,link,group){
+  const w=el("section","gut hb"); const ban=el("div","banner2b light"); if(group){ const bg=el("div","bgimg"); bg.append(sceneImg(group,"group",1200,1000)); ban.append(bg); } else photo(ban,key,"",{wrap:true,noph:true,noup:true});
   const bi=el("div","in"); bi.append(el("h2",null,t), el("p",null,p));
   const bb=el("button","btn-o",btn); bb.type="button"; bb.addEventListener("click",()=>go(link)); bi.append(bb); ban.append(bi);
   if(canEdit&&assets){ const u=el("div","uphint"); photo(el("div"),key,"",{noph:true,upTarget:u}); ban.append(u); }
@@ -976,11 +1104,12 @@ function viewHome(app){
   /* 1. portada */
   const hero=el("section","hero"); photo(hero,"hero","",{wrap:true,noph:true,noup:true});
   const inn=el("div","in gut");
-  inn.append(el("h1",null,"Fórmulas que transforman tu piel"));
-  inn.append(el("p",null,"Cuidado facial pensado para tu piel: resultados visibles día tras día, con envío gratis y pago al recibir."));
+  inn.append(el("p","hk","Para mujeres de 35 a 70 años"));
+  inn.append(el("h1",null,"Tu piel puede verse tan joven como te sentís"));
+  inn.append(el("p",null,"Cuidado facial para líneas, firmeza, manchas y piel seca, explicado paso a paso. Envío gratis a todo Paraguay y pagás al recibir."));
   const b=el("button","btn-w","COMPRAR AHORA"); b.type="button"; b.addEventListener("click",()=>go("productos")); inn.append(b);
   const bub=el("div","bubs");
-  CATS.forEach(c=>{ const x=el("button","bub"); x.type="button"; const ci=el("span","ci"); const im=el("img"); im.src=HOMEIMG["bub-"+c.id]; im.alt=""; im.loading="lazy"; ci.append(im); x.append(ci, el("span",null,c.name)); x.addEventListener("click",()=>{filter=c.id; go("productos");}); bub.append(x); });
+  CATS.forEach(c=>{ const x=el("button","bub"); x.type="button"; const ci=el("span","ci"); ci.append(sceneImg(CATPROD[c.id],"dark",750,1000)); x.append(ci, el("span",null,c.name)); x.addEventListener("click",()=>{filter=c.id; go("productos");}); bub.append(x); });
   inn.append(bub);
   hero.append(inn);
   if(canEdit&&assets){ const w=el("div","uphint"); photo(el("div"),"hero","",{noph:true,upTarget:w}); hero.append(w); }
@@ -996,14 +1125,25 @@ function viewHome(app){
   const cr=el("div","rail");
   CATS.forEach(c=>{ const b=el("button","cat"); b.type="button"; const bg=el("div","bg"); b.append(bg);
     bg.style.background=({antiedad:"linear-gradient(160deg,#8C7B70,#D9C7B8)",hidratacion:"linear-gradient(160deg,#6F8796,#C9D6DD)",ojoslabios:"linear-gradient(160deg,#9A7468,#E6CBBE)",maquillaje:"linear-gradient(160deg,#A08A74,#EADBC9)",herramientas:"linear-gradient(160deg,#6D7268,#CFD3C8)"})[c.id];
-    photo(bg,"cat-"+c.id,"",{noph:true,noup:true});
+    bg.append(sceneImg(CATPROD[c.id],"dark",750,1000));
     b.append(el("h3",null,c.name), el("span","gl","COMPRAR AHORA"));
     if(canEdit&&assets){ photo(el("div"),"cat-"+c.id,"",{noph:true,upTarget:b}); }
     b.addEventListener("click",()=>{filter=c.id; go("productos");}); cr.append(b); });
   cs.append(cr); app.append(cs);
 
+  /* 3b. por edad: hablarle a cada clienta */
+  { const s=el("section","sec gut age"); s.append(el("p","kicker","Pensado para vos"), el("h2",null,"Tu piel cambia con los años. Tu cuidado también."), el("p","lead2","Elegí tu etapa y te mostramos qué ayuda a tu piel. Todo se explica paso a paso, sin palabras difíciles."));
+    const g=el("div","agegrid");
+    [["35 a 45 años","Aparecen las primeras líneas","La piel empieza a perder luz y se marcan las primeras líneas. Es el momento de sumar un sérum de noche y una buena hidratación.",["retinol","celimax","pdrn"]],
+     ["45 a 55 años","Firmeza y manchas","El rostro se ve menos firme y las manchas del sol se notan más. Buscá productos que hidraten, unifiquen el tono y cuiden el cuello.",["beevenom","manchas","balsamo"]],
+     ["55 a 70 años","Piel más fina y seca","La piel se reseca y se vuelve más sensible. Necesita hidratación profunda, productos suaves y un masaje que la despierte.",["althea147","althea345","cepillo"]]].forEach(([e,t,d,ids])=>{
+      const c=el("article","agecard"); c.append(el("span","ae",e), el("h3",null,t), el("p",null,d));
+      const ul=el("ul"); ids.forEach(id=>{ const q=byId[id]; if(!q) return; const li=el("li"); const a=el("a",null,q.short); a.href="#p-"+id; li.append(a, el("span",null,gs(q.price))); ul.append(li); }); c.append(ul);
+      const b=el("button","btn-o dark","Ver productos"); b.type="button"; b.addEventListener("click",()=>go("p-"+ids[0])); c.append(b); g.append(c); });
+    s.append(g); app.append(s); }
+
   /* 4. más vendidos: foto grande + productos + línea de avance */
-  app.append(lpSlider("Más vendidos",BEST,HOMEIMG.best,"Hidratación que calma, mañana y noche"));
+  app.append(lpSlider("Más vendidos",BEST,["retinol","althea147","beevenom"],"Los favoritos de nuestras clientas"));
 
   /* 5. marquee */
   const mq=el("div","bigmq"); const tr=el("div","tr");
@@ -1011,13 +1151,16 @@ function viewHome(app){
   mq.append(tr); app.append(mq);
 
   /* 6. banner 1 */
-  app.append(heroBanner("banner1","Tu piel, en su mejor versión","Porque cuando tu piel se ve bien, todo se siente más fácil. Hidratada, suave y luminosa, como vos.","PROBALA HOY","p-pdrn"));
+  app.append(heroBanner("banner1","Tu piel, en su mejor versión","Porque cuando tu piel se ve bien, todo se siente más fácil. Hidratada, suave y luminosa, como vos.","PROBALA HOY","p-pdrn",["althea345","pdrn","althea147"]));
 
   /* 7. novedades */
-  app.append(lpSlider("Novedades",NEW,HOMEIMG.nov,"Mirada realzada, sin pegamento"));
+  app.append(lpSlider("Novedades",NEW,["pestanas","base","lipshot"],"Mirada y labios, sin complicarte"));
 
   /* 8. banner 2 */
-  app.append(heroBanner("banner2","Piel suave y radiante cada día","Unas gotas de noche, antes de tu crema: con uso constante, la piel se ve más lisa, firme y luminosa.","COMPRAR AHORA","p-retinol"));
+  app.append(heroBanner("banner2","Piel suave y radiante cada día","Unas gotas de noche, antes de tu crema: con uso constante, la piel se ve más lisa, firme y luminosa.","COMPRAR AHORA","p-retinol",["celimax","retinol","balsamo"]));
+
+  /* cómo comprar */
+  howBuy(app);
 
   /* packs */
   const pk=el("section","sec gut"); pk.id="packs"; const pkin=el("div","packsec gut");
@@ -1040,6 +1183,7 @@ function viewHome(app){
   const fq=el("section","sec gut"); fq.append(secHead("Preguntas frecuentes")); const acc=el("div","acc wide");
   [["¿Cómo pago mi pedido?","Podés pagar en efectivo cuando recibís el pedido, o por transferencia. En Asunción y Gran Asunción podés transferir antes de que salga el delivery o al recibir el paquete."],
    ["¿Cuánto tarda en llegar?","Asunción y Gran Asunción: 24 a 48 horas hábiles. Interior del país: 48 a 72 horas hábiles. El envío es gratis a todo Paraguay."],
+   ["¿Sirven para mujeres de 50, 60 o 70 años?","Sí. Elegimos productos pensados para piel madura: hidratan, ayudan con la firmeza y las manchas, y cada uno explica cómo usarlo. Los resultados varían según cada piel y la constancia de uso."],
    ["¿Sirven para piel madura?","Sí. Cada producto indica para qué sirve y dónde se aplica. Si tenés piel sensible, probá primero en una zona pequeña. Los resultados varían según cada piel y la constancia de uso."],
    ["¿Puedo usar varios productos juntos?","Sí. En cada producto te mostramos con qué se combina y en qué orden usarlo. No combines dos productos con retinol o retinal en la misma rutina."],
    ["¿Qué pasa si llega dañado o equivocado?","Avisanos por el formulario de contacto dentro de las 48 horas de recibirlo, con fotos del paquete y del producto."],
@@ -1136,10 +1280,11 @@ function viewProduct(app,id){
   const w=el("section","pp gut");
   const gal=el("div","pgal"); const main=el("div","main"); gal.append(main); const nImg=IMGN[p.id]||0;
   const usePk=sel.touched&&PACKS.has(p.id); const k0=usePk?-1:0;
-  if(nImg){ const im=el("img"); im.alt=p.name; if(usePk) packSrc(im,p.id,sel.n,p.id+"-0.jpg"); else im.src=p.id+"-0.jpg"; main.append(im);
-    const th=el("div","thumbs"); for(let k=0;k<nImg;k++){ const b=el("button","th"); b.type="button"; b.setAttribute("aria-label","Ver foto "+(k+1)); const t=el("img"); t.src=p.id+"-"+k+".jpg"; t.alt=""; t.loading="lazy"; b.append(t); b.setAttribute("aria-current",String(k===k0));
-      b.addEventListener("click",()=>{ im.src=p.id+"-"+k+".jpg"; th.querySelectorAll(".th").forEach(x=>x.setAttribute("aria-current","false")); b.setAttribute("aria-current","true"); }); th.append(b); }
+  if(PACKS.has(p.id)){ const im=el("img"); im.alt=p.name; if(usePk) packSrc(im,p.id,sel.n); else sceneInto(im,p.id,"hero"); main.append(im);
+    const th=el("div","thumbs"); GALLERY.forEach((ty,k)=>{ const b=el("button","th"); b.type="button"; b.setAttribute("aria-label","Ver imagen "+(k+1)); const t=sceneImg(p.id,ty); b.append(t); b.setAttribute("aria-current",String(!usePk&&k===0));
+      b.addEventListener("click",()=>{ sceneInto(im,p.id,ty); th.querySelectorAll(".th").forEach(x=>x.setAttribute("aria-current","false")); b.setAttribute("aria-current","true"); }); th.append(b); });
     gal.append(th); }
+  else if(nImg){ const im=el("img"); im.alt=p.name; im.src=p.id+"-0.jpg"; main.append(im); }
   else photo(main,"p-"+p.id,p.short,{});
   w.append(gal);
   const inf=el("div","pinfo il");
@@ -1162,7 +1307,7 @@ function viewProduct(app,id){
     if(sel.n===n&&sel.touched) bo.append(packDetail(p,n));
   });
   bx.append(bo); inf.append(bx);
-  const sh=el("p","ilship"); sh.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>'; sh.append(el("span",null,"Envío gratis: Asunción y Gran Asunción en 24–48 h hábiles")); inf.append(sh);
+  const sh=el("p","ilship"); sh.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>'; sh.append(el("span",null,"Envío gratis a todo Paraguay · Pagás en efectivo al recibir")); inf.append(sh);
   const buy=el("button","ilbuy"); buy.type="button"; buy.append(el("b",null,"PEDIR AHORA"), el("span",null,"Pagás al recibir · Contra entrega o transferencia")); buy.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); inf.append(buy);
   const add=el("button","ilcart","Añadir al carrito"); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,tone())); inf.append(add);
   const g=el("p","ilg"); g.append(el("b",null,"Cambios: "), document.createTextNode("hasta 30 días con el producto sin uso y cerrado.")); inf.append(g);
@@ -1170,8 +1315,11 @@ function viewProduct(app,id){
 
   const CT=CONT[p.id];
   if(CT){ const bl=[[CT.aud,CT.q,CT.ctx,CT.a],["Dónde se aplica",CT.zt,CT.zp,CT.b],["Qué podés esperar",CT.et,CT.ep,CT.c]];
-    bl.forEach(([k,t,x,im],n)=>{ const i=ilSec(app,k,t,x); if(nImg&&im!=null&&im<nImg) i.append(ilImg(p.id,im,t));
+    bl.forEach(([k,t,x,im],n)=>{ const i=ilSec(app,k,t,x); if(PACKS.has(p.id)){ const d=el("div","ilimg"); d.append(sceneImg(p.id,["age","use","ben"][n],1000,1000,t)); i.append(d); }
       if(n===0){ const b=el("button","ilbuy"); b.type="button"; b.append(el("b",null,"PEDIR AHORA"), el("span",null,"Pagás al recibir · Envío gratis")); b.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); i.append(b); } }); }
+  if(ANG[p.id]){ const i=ilSec(app,"¿Te identificás?","Cada mujer llega por un motivo distinto",null); const c=el("div","ilang"); ANG[p.id].forEach(([t,d])=>{ const x=el("div"); x.append(el("b",null,t), el("p",null,d)); c.append(x); }); i.append(c);
+    const b=el("button","ilbuy"); b.type="button"; b.append(el("b",null,"QUIERO PROBARLO"), el("span",null,"Envío gratis · Pagás al recibir")); b.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); i.append(b); }
+  if(BA[p.id]&&BA[p.id].length){ const i=ilSec(app,"Resultados reales","Antes y después de nuestras clientas","Deslizá la línea para comparar. Fotos compartidas por clientas con su permiso. Los resultados varían según cada piel y la constancia de uso."); BA[p.id].forEach(o=>i.append(baSlider(o))); }
   { const i=ilSec(app,"Qué recibís","Elegí tu opción y sabé exactamente qué llega",null); const c=el("div","ilcards");
     [1,2,3].forEach(n=>{ const d=el("div"); let t=n===1?"1 unidad":n+" unidades"; let g="";
       if(n===2&&p.pack2&&/Celimax/i.test(p.pack2)) g="+ 1 Celimax Retinal Shot 15 ml de regalo";
@@ -1187,7 +1335,7 @@ function viewProduct(app,id){
       const b=el("button","ilcart","Sumar al carrito"); b.type="button"; b.addEventListener("click",()=>addToCart(c.id,1,c.tones?c.tones[0]:null)); tx.append(b);
       card.append(th,tx); i.append(card); }); }
   { const fq=[...((CONT[p.id]||{}).faq||[]),...(p.faq||[]),...FAQG]; const i=ilSec(app,"Dudas frecuentes","Todo lo que necesitás saber antes de pedirlo",null); const acc=el("div","acc wide"); fq.forEach(([q,r])=>{const d=el("details"); d.append(el("summary",null,q), el("p",null,r)); acc.append(d);}); i.append(acc); }
-  { const i=ilSec(app,"Envío y pago","Recibí tu pedido y pagá al recibir","Asunción y Gran Asunción: 24 a 48 horas hábiles. Interior: 48 a 72 horas hábiles. Pagás contra entrega o por transferencia. Cambios hasta 30 días con el producto sin uso y cerrado; si llega dañado o equivocado, avisanos dentro de las 48 horas.");
+  { const i=howBuy(app,"Envío y pago","Recibí tu "+(p.short||p.name)+" en casa y pagá al recibir");
     const b=el("button","ilbuy"); b.type="button"; b.append(el("b",null,"PEDIR AHORA"), el("span",null,gs(packPrice(p,sel.n))+" · "+(sel.n===1?"1 unidad":sel.n+" unidades"))); b.addEventListener("click",()=>buyNow(p.id,sel.n,tone())); i.append(b); }
 
   if(TDS.ready){ ensureTiers(p.id).then(ch=>{ if(ch&&location.hash==="#p-"+p.id) rerender(); }); if(TDS.map[p.id]) TD.event("ViewContent",[{id:String(TDS.map[p.id].productId),quantity:1}]); }
