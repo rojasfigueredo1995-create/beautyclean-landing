@@ -1106,7 +1106,7 @@ async function tdSum(S){
   const items=tdItems(); if(!items) return;
   const seq=++tdQuoteSeq, opt=tdOpt();
   const base={items}; if(form.cCiu) base.cityId=form.cCiu; if(opt&&opt.request&&opt.request.customPaymentMethodId) base.customPaymentMethodId=opt.request.customPaymentMethodId; if(opt&&opt.request&&opt.request.viaStripe) base.viaStripe=true;
-  const cp=tdCoupon(); let cpMsg="";
+  const cp0=tdCoupon(), cp=cp0&&rlFits(cp0)?cp0:null; let cpMsg=cp0&&!cp?rlOneMsg(cp0):"";
   /* con premio: si la tienda no lo acepta para este carrito, cotiza sin premio y avisa */
   const Q=async b=>{ if(cp&&!cpMsg){ let err; try{ return await TD.quote(Object.assign({couponCode:cp.code},b)); }catch(e){ if(e.status>=500||e.status===429) throw e; err=e; }
       /* sin premio tiene que cotizar bien; si tampoco cotiza, el problema no es el premio */
@@ -1144,7 +1144,7 @@ async function tdSubmit(fm,btn){
   const body=Object.assign({items,tel:(form.cTel||"").replace(/[^\d+]/g,""),name:nm[0],lastName:nm.slice(1).join(" ")||undefined,email:form.cMail||undefined,
     cityId:form.cCiu||undefined,direction1:form.cDir,direction2:form.cRef||undefined,shippingMethodId:TDS.ship||undefined,metaContext:TD.metaContext(TDS.icId)},opt&&opt.request?opt.request:{});
   if(body.viaPagopar===undefined) body.viaPagopar=false;
-  { const cp=tdCoupon(); if(cp&&TDS.cpOk) body.couponCode=cp.code; }
+  { const cp=tdCoupon(); if(cp&&TDS.cpOk&&rlFits(cp)) body.couponCode=cp.code; }
   const sig=JSON.stringify([items,body.cityId,body.shippingMethodId,form.pago,body.tel,body.direction1,body.couponCode||""]);
   if(sig!==ckSig){ ckSig=sig; ckKey=TD.uuid(); }
   const useBtn=(opt&&opt.kind==="stripe"&&document.getElementById("cardBtn"))||btn, keep=useBtn.innerHTML;
@@ -1232,16 +1232,20 @@ async function tdRestoreThanks(){
    (el descuento lo calcula la tienda). "on:false" = apagada; con ?ruleta=demo se puede probar sin aplicar premios. */
 const RULETA=Object.assign({on:false,delay:3500,hours:48,leadUrl:"",leadMap:null,stackNote:"",
   prizes:[
-    {id:"p10",t:"10% OFF",d:"10% de descuento en tu compra",code:"RULETA10",w:40},
-    {id:"p20",t:"20% OFF",d:"20% de descuento en tu compra",code:"RULETA20",w:25},
+    {id:"p10",t:"10% OFF",d:"10% de descuento en 1 unidad del producto que elijas",code:"RULETA10",w:40,one:true},
+    {id:"p20",t:"20% OFF",d:"20% de descuento en 1 unidad del producto que elijas",code:"RULETA20",w:25,one:true},
     {id:"reg",t:"REGALO",d:"Un regalo sorpresa dentro de tu paquete",code:"REGALO",w:20},
     {id:"gc",t:"GIFT CARD",d:"Gift card de Gs. 30.000 para tu compra",code:"GIFT30",w:10},
-    {id:"p50",t:"50% OFF",d:"50% de descuento en tu compra",code:"RULETA50",w:5}
+    {id:"p50",t:"50% OFF",d:"50% de descuento en 1 unidad del producto que elijas",code:"RULETA50",w:5,one:true}
   ]},(window.TIENDY_CONFIG||{}).RULETA||{});
 const RL_DEMO=/[?&]ruleta=demo\b/.test(location.search);
 const RL_KEY="bc.ruleta";
 const GIFTICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v8h14v-8M12 8v12M12 8c-2-4-6-3-5-1 .6 1.2 3 1 5 1zM12 8c2-4 6-3 5-1-.6 1.2-3 1-5 1z"/></svg>';
-function rlGet(){ try{ const s=JSON.parse(localStorage.getItem(RL_KEY)||"null"); if(!s||!s.id) return null; s.expired=!!(s.exp&&Date.now()>s.exp); return s; }catch(e){ return null; } }
+function rlGet(){ try{ const s=JSON.parse(localStorage.getItem(RL_KEY)||"null"); if(!s||!s.id) return null; s.expired=!!(s.exp&&Date.now()>s.exp); const p=RULETA.prizes.find(x=>x.id===s.id); if(p){ s.t=p.t; s.d=p.d; s.code=s.code==="NOEXISTE"?s.code:p.code; s.one=!!p.one; } return s; }catch(e){ return null; } }
+/* los descuentos con "one" valen para 1 sola unidad en el pedido */
+const rlUnits=()=>cart.reduce((a,l)=>a+l.n,0)+(bump&&BUMP.id?1:0);
+const rlFits=s=>!s.one||rlUnits()===1;
+const rlOneMsg=s=>"Tu premio ("+s.t+") vale para 1 sola unidad. Tenés "+rlUnits()+" en tu pedido: dejá solo 1 para usarlo.";
 function rlSet(s){ try{ localStorage.setItem(RL_KEY,JSON.stringify(s)); }catch(e){} }
 function rlUsed(){ const s=rlGet(); if(s){ s.used=true; rlSet(s); } rlTab(); }
 function rlBad(){ TDS.cpOff=true; }
@@ -1285,16 +1289,17 @@ function rlOpen(){
   rlDraw(cv,SL); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(cv.isConnected) rlDraw(cv,SL); });
   cv.style.transform="rotate("+rlRot+"deg)";
   const bases=()=>{ const tot=RULETA.prizes.reduce((a,p)=>a+p.w,0), de=el("details"); de.append(el("summary",null,"Bases del juego")); const ul=el("ul");
-    ["Un giro por persona. Todas las porciones tienen premio.","El premio vale "+RULETA.hours+" horas desde que girás, para una compra en esta página, y se descuenta solo al finalizar el pedido.","Probabilidad de cada premio: "+RULETA.prizes.map(p=>p.t.toLowerCase()+" "+(Math.round(p.w/tot*1000)/10)+"%").join(" · ")+".","No se cambia por dinero."+(RULETA.stackNote?" "+RULETA.stackNote:"")].forEach(t=>ul.append(el("li",null,t))); de.append(ul); return de; };
+    ["Un giro por persona. Todas las porciones tienen premio.","El premio vale "+RULETA.hours+" horas desde que girás, para una compra en esta página, y se descuenta solo al finalizar el pedido.","Probabilidad de cada premio: "+RULETA.prizes.map(p=>p.t.toLowerCase()+" "+(Math.round(p.w/tot*1000)/10)+"%").join(" · ")+".","Los descuentos de 10%, 20% y 50% valen para 1 sola unidad de 1 producto: no se suman a los packs de 2 o 3 unidades ni a otras ofertas.","La gift card y el regalo valen para cualquier compra sin packs.","No se cambia por dinero."].forEach(t=>ul.append(el("li",null,t))); de.append(ul); return de; };
   const showWin=(s,fresh)=>{ head.textContent=""; body.textContent="";
     if(RL_DEMO) head.append(el("span","rdemo","MODO PRUEBA · TODAVÍA NO SE APLICA"));
     head.append(el("span","re",fresh?"¡Felicidades!":"Tu premio"), el("h2","rwin",s.t)); head.querySelector("h2").id="rlT";
-    body.append(el("p","rs",s.d+"."), el("p","rs",s.used?"Ya usaste este premio en tu pedido.":s.expired?"Este premio venció el "+rlFecha(s.exp)+".":"Ya quedó guardado: se descuenta solo cuando finalizás tu pedido. Vale hasta el "+rlFecha(s.exp)+"."+(RULETA.stackNote?" "+RULETA.stackNote:"")));
+    body.append(el("p","rs",s.d+"."), el("p","rs",s.used?"Ya usaste este premio en tu pedido.":s.expired?"Este premio venció el "+rlFecha(s.exp)+".":"Ya quedó guardado: se descuenta solo cuando finalizás tu pedido. Vale hasta el "+rlFecha(s.exp)+"."));
+    if(!s.used&&!s.expired){ const n=el("p","rs",s.one?"Vale para 1 sola unidad de 1 producto. No se suma a los packs ni a otras ofertas.":(RULETA.stackNote||"")); n.style.fontWeight="600"; n.style.color="#000"; if(n.textContent) body.append(n); }
     const go2=el("button","rgo",s.used||s.expired?"SEGUIR MIRANDO":"USAR MI PREMIO AHORA"); go2.type="button"; go2.addEventListener("click",()=>{ rlClose(); if(!s.used&&!s.expired&&!/^#(p-|checkout)/.test(location.hash)){ if(cart.length) openCart(); else go("productos"); } }); body.append(go2);
     if(RL_DEMO){ const again=el("button","rno","Girar de nuevo (solo en modo prueba)"); again.type="button"; again.addEventListener("click",()=>{ showForm(); }); body.append(again); }
     body.append(bases()); go2.focus(); };
   const spin=(tel,mail,btn)=>{ const r=rlRoll(SL); btn.disabled=true; btn.textContent="GIRANDO…";
-    const now=Date.now(), st={id:r.s.p.id,t:r.s.p.t,d:r.s.p.d,code:r.s.p.code,at:now,exp:now+RULETA.hours*36e5,tel,mail:mail||null};
+    const now=Date.now(), st={id:r.s.p.id,t:r.s.p.t,d:r.s.p.d,code:r.s.p.code,one:!!r.s.p.one,at:now,exp:now+RULETA.hours*36e5,tel,mail:mail||null};
     if(!RL_DEMO){ rlSet(st); if(!form.cTel) form.cTel=tel; if(mail&&!form.cMail) form.cMail=mail; rlLead(st); }
     const slow=window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches, dur=slow?700:5200;
     const target=(360-r.ang)%360; rlRot=rlRot-(rlRot%360)+(slow?360:360*6)+target;
@@ -1304,7 +1309,7 @@ function rlOpen(){
   const showForm=()=>{ head.textContent=""; body.textContent="";
     if(RL_DEMO) head.append(el("span","rdemo","MODO PRUEBA · TODAVÍA NO SE APLICA"));
     const h=el("h2",null,"Girá la ruleta y llevate tu premio"); h.id="rlT";
-    head.append(el("span","re","Beauty Clean · Juego de bienvenida"), h, el("p","rs","Todas las porciones tienen premio. Dejá tu WhatsApp, girá y usalo en tu compra."));
+    head.append(el("span","re","Beauty Clean · Juego de bienvenida"), h, el("p","rs","Todas las porciones tienen premio. Dejá tu WhatsApp, girá y usalo en tu compra. Los descuentos valen para 1 unidad."));
     const fm=el("form"); fm.noValidate=true;
     const f1=el("div"), l1=el("label",null,"Tu número de WhatsApp"), i1=el("input"), e1=el("span","rerr"); l1.htmlFor="rlTel"; i1.id="rlTel"; i1.type="tel"; i1.inputMode="tel"; i1.autocomplete="tel"; i1.placeholder="Ej.: 0981 123 456"; i1.required=true; if(form.cTel) i1.value=form.cTel; e1.setAttribute("role","alert"); f1.append(l1,i1,e1);
     const f2=el("div"), l2=el("label"), i2=el("input"), e2=el("span","rerr"); l2.htmlFor="rlMail"; l2.append(document.createTextNode("Correo electrónico "), el("small",null,"(opcional)")); i2.id="rlMail"; i2.type="email"; i2.autocomplete="email"; i2.placeholder="tu@email.com"; if(form.cMail) i2.value=form.cMail; f2.append(l2,i2,e2);
@@ -1334,7 +1339,7 @@ function rlSync(){
   rlTimer=setTimeout(()=>{ if(!document.getElementById("rlM")&&$("drawer").hidden) rlOpen(); },RL_DEMO?900:RULETA.delay);
 }
 /* aviso del premio en el carrito */
-function rlCartNote(box){ const s=tdCoupon(); if(!s) return; const r=el("div","rlrow"); r.innerHTML=GIFTICO; r.append(document.createTextNode("Tu premio: "+s.t+". Se descuenta al finalizar el pedido."+(RULETA.stackNote?" "+RULETA.stackNote:""))); box.append(r); }
+function rlCartNote(box){ const s=tdCoupon(); if(!s) return; const r=el("div","rlrow"); r.innerHTML=GIFTICO; r.append(document.createTextNode(!rlFits(s)?rlOneMsg(s):"Tu premio: "+s.t+(s.one?" en 1 unidad":"")+". Se descuenta al finalizar el pedido."+(s.one?"":RULETA.stackNote?" "+RULETA.stackNote:""))); box.append(r); }
 if(RL_DEMO) window.__rl={slices:rlSlices,roll:rlRoll};
 
 let cart=[]; try{cart=JSON.parse(localStorage.getItem("bc.cart")||"[]")||[];}catch(e){cart=[];}
