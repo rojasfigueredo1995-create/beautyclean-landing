@@ -145,7 +145,7 @@ window.TIENDY_CONFIG = {
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111'/%3E%3Ctext x='32' y='44' font-family='Arial,Helvetica,sans-serif' font-size='36' font-weight='700' fill='%23fff' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap">
 <style>
 /* Layout: tienda de cosmética editorial con los colores y la tipografía de infinitelove-bcn (Inter, blanco y negro), header transparente sobre portada, carruseles horizontales, carrito lateral y checkout de pago al recibir */
 :root{
@@ -600,6 +600,54 @@ footer .logo{color:#fff;font-size:30px}
 .paybtn[disabled]{opacity:.6;cursor:progress}
 .wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#000;color:#fff;border-radius:999px;padding:14px 22px;text-decoration:none;font-weight:500;min-height:50px}
 
+/* v18: fotos sobre fondo hielo, segunda imagen con beneficios, marquesina y pie al estilo editorial, bloque educativo */
+.pc .im{background:#F1F1F0}
+.pc .im img.alt2{position:absolute;inset:0;opacity:0;transition:opacity .35s ease}
+@media (hover:hover){.pc:hover .im img.alt2,.pc:focus-visible .im img.alt2{opacity:1}}
+@media (hover:none){.pc .im img.alt2{animation:alt2 9s ease-in-out infinite;animation-delay:var(--d,0s)}}
+@keyframes alt2{0%,50%{opacity:0}58%,92%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.pc .im img.alt2{animation:none;transition:none}}
+.pc .badge{z-index:2;left:10px;top:auto;bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.bigmq{font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.5px;font-size:clamp(30px,4.6vw,56px);padding-block:34px;border-block:1px solid #EAEAEA}
+.bigmq .tr span{color:#111}.bigmq .tr span.it{font-style:italic;color:#8A5B4D}.bigmq .tr span.dot{color:#C9C4BE}
+.und .undk{margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8A5B4D}
+.und h2.undt{margin:0 0 14px;font-family:"Playfair Display",Georgia,"Times New Roman",serif;font-weight:600;font-size:clamp(28px,6.6vw,44px);line-height:1.12;letter-spacing:-.4px;color:#2A2420;text-wrap:balance}
+.und .undl{margin:0 0 20px;font-size:17px;line-height:1.6;color:#2A2420;max-width:62ch}
+.undg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (min-width:860px){.undg{grid-template-columns:repeat(4,1fr)}}
+.undc{border:1px solid #E4E0DA;border-radius:16px;background:#fff;overflow:hidden;display:flex;flex-direction:column}
+.undc .ph{aspect-ratio:16/10;background:#F1F1F0;display:none}.undc .ph.on{display:block}.undc .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.undc .tx{padding:14px}
+.undc b{display:block;font-size:16px;font-weight:600;color:#8A5B4D;margin-bottom:5px}
+.undc p{margin:0;font-size:14.5px;line-height:1.45;color:#3d3935}
+.undn{margin:18px 0 0;padding:4px 0 4px 14px;border-left:4px solid #C9A77C;font-size:15px;line-height:1.5;color:#2A2420}
+footer.fx{position:relative;overflow:hidden;background:#2B211C;color:#fff;border-radius:44px 44px 0 0;padding-block:64px calc(34px + env(safe-area-inset-bottom,0px))}
+footer.fx .fbg{position:absolute;inset:0}
+footer.fx .fbg img{width:100%;height:100%;object-fit:cover;object-position:50% 38%;display:block}
+footer.fx .fbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(43,30,24,.78),rgba(43,30,24,.72) 45%,rgba(30,22,18,.88))}
+footer.fx .fin{position:relative;z-index:1}
+footer.fx .fcols{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:28px;align-items:start}
+footer.fx h4{margin:0 0 12px;font-family:Inter,system-ui,sans-serif;font-size:24px;font-weight:600;letter-spacing:-.8px;color:#fff}
+footer.fx .fcols a{display:block;color:#fff;font-size:17px;letter-spacing:-.3px;text-decoration:none;padding:5px 0}
+footer.fx .fcols a:hover{text-decoration:underline}
+footer.fx .flogo{justify-self:end;font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-1px;color:#fff;text-transform:uppercase}
+footer.fx .flogo span{font-weight:300}
+footer.fx .ffacts{list-style:none;margin:34px 0 0;padding:20px 0 0;border-top:1px solid rgba(255,255,255,.22);display:flex;flex-wrap:wrap;gap:8px 22px}
+footer.fx .ffacts li{font-size:14.5px;color:rgba(255,255,255,.92);margin:0}
+footer.fx .fcopy{margin:26px 0 0;font-size:14px;letter-spacing:.04em;color:#fff}
+footer.fx .fsafe{margin:8px 0 0;font-size:12.5px;color:rgba(255,255,255,.75)}
+@media (max-width:760px){footer.fx{border-radius:30px 30px 0 0;padding-top:44px}footer.fx .fcols{grid-template-columns:1fr 1fr}footer.fx .flogo{grid-column:1/-1;grid-row:1;justify-self:start}footer.fx h4{font-size:21px}footer.fx .fcols a{font-size:16px}}
+/* v17: franja de marcas y tarjetas de categoría con foto propia (cat-{id}.jpg) */
+.brandsec{padding-block:30px 4px;text-align:center}
+.brandk{margin:0 0 16px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8A5B4D}
+.brands{display:grid;grid-template-columns:repeat(4,auto);justify-content:center;align-items:center;gap:18px clamp(36px,7vw,110px);color:#111}
+.brands span{font-size:clamp(22px,3vw,34px);line-height:1;white-space:nowrap}
+.brands .b1{font-family:"Bodoni 72","Didot","Bodoni MT","Playfair Display",Georgia,"Times New Roman",serif;letter-spacing:.2em}
+.brands .b2{font-family:"Arial Narrow","Helvetica Neue","Roboto Condensed",Arial,sans-serif;font-weight:800;letter-spacing:.01em;font-stretch:condensed}
+.brands .b3{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;letter-spacing:-.02em}
+.brands .b4{font-family:"Bodoni 72","Didot","Bodoni MT",Georgia,"Times New Roman",serif;letter-spacing:.08em}
+@media (max-width:640px){.brands{grid-template-columns:repeat(2,1fr);gap:20px 10px}.brands span{font-size:24px}}
+.cat .bg img.own{position:absolute;inset:0}
 /* v16: ayuda por WhatsApp solo donde ayuda a cerrar la compra, páginas de información */
 .wabox{margin-top:18px;padding:16px;border:1px solid #E4E3E1;border-radius:14px;background:#fff;display:flex;flex-direction:column;gap:10px;letter-spacing:normal}
 .wabox b{font-size:16px;color:#111}.wabox p{margin:0;font-size:14.5px;color:#625D58;line-height:1.45}
@@ -709,15 +757,18 @@ footer .flinks a{color:#fff;font-size:14px;text-decoration:underline}
 
 <main id="app"></main>
 
-<footer class="gut">
-  <div class="fg">
-    <div><div class="logo">Beauty <span>Clean</span></div><p style="margin-top:12px;max-width:38ch">Tienda online de belleza y cuidado personal en Paraguay. Sin local de venta al público.</p><p>Atención por WhatsApp en días hábiles: respondemos normalmente dentro de 24 horas hábiles.</p></div>
-    <div><h4>Envíos y pagos</h4><ul><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Pagás en efectivo al recibir</li></ul></div>
-    <div><h4>Cambios y devoluciones</h4><ul><li>Hasta 30 días, producto sin uso y cerrado</li><li>Dañado, equivocado o incompleto: avisanos en 48 h</li><li>Reembolsos en 7 a 10 días hábiles</li><li>beautyclean.store</li></ul></div>
+<footer class="gut fx">
+  <div class="fbg" aria-hidden="true"><img src="base-7.jpg" alt="" loading="lazy"></div>
+  <div class="fin">
+    <div class="fcols">
+      <nav aria-label="Políticas"><h4>Políticas</h4><a href="#privacidad">Política de privacidad</a><a href="#terminos">Términos y condiciones</a><a href="#envios">Política de envío</a><a href="#envios">Cambios y devoluciones</a></nav>
+      <nav aria-label="Nosotras"><h4>Nosotras</h4><a href="#nosotros">Sobre Beauty Clean</a><a href="#productos">Productos</a><a data-wa="Hola, tengo una consulta sobre Beauty Clean: " hidden>Contacto por WhatsApp</a></nav>
+      <div class="flogo">Beauty <span>Clean</span></div>
+    </div>
+    <ul class="ffacts"><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Pagás en efectivo al recibir</li><li>Cambios hasta 30 días</li></ul>
+    <p class="fcopy">© 2026, BEAUTY CLEAN · ASUNCIÓN, PARAGUAY</p>
+    <p class="fsafe">Tienda online, sin local de venta al público. Nunca te pediremos contraseñas, códigos de seguridad ni datos completos de tarjetas.</p>
   </div>
-  <nav class="flinks" aria-label="Información de la tienda"><a href="#nosotros">Sobre nosotros</a><a href="#envios">Envíos y devoluciones</a><a href="#terminos">Términos y condiciones</a><a href="#privacidad">Política de privacidad</a><a data-wa="Hola, tengo una consulta sobre Beauty Clean: " hidden>Escribinos por WhatsApp</a></nav>
-  <p style="margin-top:20px;font-size:12px;opacity:.7">Nunca te pediremos contraseñas, códigos de seguridad ni datos completos de tarjetas.</p>
-  <p style="margin-top:8px;font-size:12px;opacity:.75">© 2026 Beauty Clean · Paraguay</p>
 </footer>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -1053,7 +1104,7 @@ let cart=[]; try{cart=JSON.parse(localStorage.getItem("bc.cart")||"[]")||[];}cat
 const saveCart=()=>{try{localStorage.setItem("bc.cart",JSON.stringify(cart));}catch(e){} $("cartCount").textContent=cart.reduce((a,l)=>a+l.n,0);};
 
 /* marquesina */
-const pillTxt=["BLACK FRIDAY DE NAVIDAD","ENVÍO GRATIS A TODO PARAGUAY","PAGÁS AL RECIBIR","2 UNIDADES 30% MENOS","3 UNIDADES 35% MENOS + CEPILLO DE REGALO"];
+const pillTxt=["ENVÍO GRATIS | © BEAUTY CLEAN ASUNCIÓN, 2026","PAGÁS AL RECIBIR | TODO PARAGUAY","BLACK FRIDAY | 2 UNIDADES 30% MENOS","3 UNIDADES 35% MENOS | CEPILLO DE REGALO"];
 const pt=$("pillTr"); for(let i=0;i<4;i++) pillTxt.forEach(t=>pt.append(el("span",null,t)));
 
 /* fotos (el dueño las sube desde la página) */
@@ -1061,7 +1112,7 @@ function photo(box,key,label,opts){
   opts=opts||{};
   box.querySelectorAll(":scope > .ph, :scope > img, :scope > .up, :scope > .bgimg").forEach(n=>n.remove());
   const id=photos[key]; const scn=!id&&key.slice(0,2)==="p-"&&typeof PACKS!=="undefined"&&PACKS.has(key.slice(2)); const ext=!id&&!scn&&((typeof HOMEIMG!=="undefined"&&HOMEIMG[key])||key.slice(0,2)==="p-"&&((typeof IMGN!=="undefined"&&IMGN[key.slice(2)])?key.slice(2)+"-0.jpg":(TDS.map[key.slice(2)]&&TDS.map[key.slice(2)].img)));
-  if(id||ext||scn){ const im=el("img"); if(scn) sceneInto(im,key.slice(2),"hero"); else im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
+  if(id||ext||scn){ const im=el("img"); if(scn) sceneInto(im,key.slice(2),"card"); else im.src=id?"/_blob/"+id:ext; im.alt=label||""; im.loading="lazy"; if(opts.wrap){const w=el("div","bgimg"); w.append(im); box.prepend(w);} else box.prepend(im); }
   else if(!opts.noph){ const ph=el("div","ph"); ph.innerHTML='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="m21 17-5-5-7 7"/></svg>'; ph.append(el("span",null,label)); box.prepend(ph); }
   if(canEdit&&assets&&!opts.noup){ const b=el("button","up",id?"Cambiar foto":"Subir foto"); b.type="button"; b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();pick(key,b);}); if(opts.upTarget) opts.upTarget.append(b); else box.append(b); }
 }
@@ -1078,6 +1129,7 @@ function shrink(file){return new Promise((res,rej)=>{const img=new Image(),u=URL
 function card(p){
   const b=el("button","pc"); b.type="button"; b.setAttribute("aria-label",p.name);
   const im=el("div","im"); photo(im,"p-"+p.id,p.short,{});
+  if(PACKS.has(p.id)){ const i2=sceneImg(p.id,"spec"); i2.className="alt2"; i2.style.setProperty("--d",((RANK.indexOf(p.id)+12)%4*1.3)+"s"); im.append(i2); }
   const top=RANK.indexOf(p.id)>-1&&RANK.indexOf(p.id)<3; const badge=el("span","badge"+(top?" top":""),top?"Más vendido":"Oferta"); im.append(badge);
   b.append(im, el("h3",null,p.name), el("span","br","Beauty Clean"));
   const pr=el("div","price"); pr.append(el("s",null,gs(p.cmp)), el("b",null,gs(p.price))); b.append(pr);
@@ -1099,7 +1151,7 @@ function sceneImage(k,type,W,H){ W=W||1000; H=H||1000; const ids=Array.isArray(k
     const ims=await Promise.all(ids.map(cutout)); const p=byId[ids[0]]||{}; const CT=CONT[ids[0]]||{};
     const dark=type==="dark";
     const g=x.createLinearGradient(0,0,0,H);
-    if(dark){ g.addColorStop(0,"#76655B"); g.addColorStop(1,"#D9CABC"); } else { g.addColorStop(0,"#F8F6F2"); g.addColorStop(1,"#E9E1D6"); }
+    if(dark){ g.addColorStop(0,"#76655B"); g.addColorStop(1,"#D9CABC"); } else { g.addColorStop(0,"#F7F7F6"); g.addColorStop(1,"#EAEAE8"); }
     x.fillStyle=g; x.fillRect(0,0,W,H);
     const circ=(cx,cy,r,col)=>{ x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.fillStyle=col; x.fill(); };
     const put=(img,cx,b,h)=>{ const w=h*img.width/img.height;
@@ -1109,7 +1161,38 @@ function sceneImage(k,type,W,H){ W=W||1000; H=H||1000; const ids=Array.isArray(k
     const fitH=(img,mw,mh)=>Math.min(mh, mw*img.height/img.width);
     x.textBaseline="top";
     const F=(w,sz)=>w+" "+sz+"px Inter, system-ui, sans-serif";
-    if((type==="hero"||type==="dark")&&ims.length===1){
+    if(type==="card"&&ims.length===1){
+      /* tarjeta: producto solo sobre fondo hielo, con piso suave */
+      const im=ims[0]; const fl=x.createLinearGradient(0,H*0.60,0,H); fl.addColorStop(0,"rgba(0,0,0,0)"); fl.addColorStop(1,"rgba(0,0,0,.05)"); x.fillStyle=fl; x.fillRect(0,H*0.60,W,H*0.40);
+      const lg=x.createRadialGradient(W*0.3,H*0.2,10,W*0.3,H*0.2,W*0.75); lg.addColorStop(0,"rgba(255,255,255,.55)"); lg.addColorStop(1,"rgba(255,255,255,0)"); x.fillStyle=lg; x.fillRect(0,0,W,H);
+      put(im,W/2,H*0.86,fitH(im,W*0.66,H*0.66));
+    } else if(type==="spec"&&ims.length===1){
+      /* segunda imagen de la tarjeta: beneficios en letra grande y el producto inclinado */
+      const im=ims[0]; const X=W*0.07; let Y=H*0.09;
+      x.fillStyle="#8A5B4D"; x.font=F(700,Math.round(W*0.066)); x.fillText("BENEFICIOS",X,Y); Y+=W*0.115;
+      const MW=W*0.56, fs=Math.round(W*0.05);
+      (p.bens||[]).slice(0,4).forEach(([t])=>{ x.font=F(500,fs); const L=wrapLines(x,t,MW-fs*1.5).slice(0,2);
+        x.strokeStyle="#8A5B4D"; x.lineWidth=4; x.strokeRect(X+2,Y+fs*0.18,fs*0.8,fs*0.8); x.beginPath(); x.moveTo(X+fs*0.2,Y+fs*0.6); x.lineTo(X+fs*0.42,Y+fs*0.82); x.lineTo(X+fs*0.86,Y+fs*0.28); x.stroke();
+        x.fillStyle="#1d1a18"; L.forEach(l=>{ x.fillText(l,X+fs*1.4,Y); Y+=fs*1.22; }); Y+=fs*0.55; });
+      const h=fitH(im,W*0.40,H*0.78), w=h*im.width/im.height; x.save(); x.translate(W*0.80,H*0.54); x.rotate(0.2); x.shadowColor="rgba(40,35,30,.28)"; x.shadowBlur=40; x.shadowOffsetX=14; x.shadowOffsetY=22; x.drawImage(im,-w/2,-h/2,w,h); x.restore();
+    } else if(type==="hero"&&ims.length===1){
+      /* foto principal: el producto sobre una mesa de mármol claro, pared hielo y luz suave */
+      const im=ims[0], cx0=W/2, yT=H*0.70, base=H*0.83;
+      const wg=x.createLinearGradient(0,0,0,yT); wg.addColorStop(0,"#F3F2EF"); wg.addColorStop(1,"#E9E7E2"); x.fillStyle=wg; x.fillRect(0,0,W,yT);
+      const lg=x.createRadialGradient(W*0.22,H*0.12,10,W*0.22,H*0.12,W*0.8); lg.addColorStop(0,"rgba(255,255,255,.6)"); lg.addColorStop(1,"rgba(255,255,255,0)"); x.fillStyle=lg; x.fillRect(0,0,W,yT);
+      const tg=x.createLinearGradient(0,yT,0,H); tg.addColorStop(0,"#F6F4F0"); tg.addColorStop(1,"#DFDBD4"); x.fillStyle=tg; x.fillRect(0,yT,W,H-yT);
+      let sd=0; for(const ch of String(ids[0])) sd=(sd*31+ch.charCodeAt(0))%9973; const rnd=()=>{ sd=(sd*9301+49297)%233280; return sd/233280; };
+      x.save(); x.beginPath(); x.rect(0,yT,W,H-yT); x.clip(); x.lineCap="round";
+      for(let i=0;i<7;i++){ const y0=yT+rnd()*(H-yT), x0=-40+rnd()*W*0.5; x.strokeStyle="rgba(120,114,106,"+(0.05+rnd()*0.07).toFixed(3)+")"; x.lineWidth=1+rnd()*3; x.beginPath(); x.moveTo(x0,y0); x.bezierCurveTo(x0+W*0.25,y0-30+rnd()*60,x0+W*0.5,y0-50+rnd()*100,x0+W*(0.7+rnd()*0.5),y0-70+rnd()*140); x.stroke(); }
+      x.restore();
+      const eg=x.createLinearGradient(0,yT-10,0,yT+26); eg.addColorStop(0,"rgba(0,0,0,0)"); eg.addColorStop(0.4,"rgba(0,0,0,.07)"); eg.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=eg; x.fillRect(0,yT-10,W,36);
+      x.fillStyle="rgba(255,255,255,.75)"; x.fillRect(0,yT,W,2);
+      const h=fitH(im,W*0.56,H*0.64), w=h*im.width/im.height;
+      /* reflejo tenue sobre el mármol */
+      { const rc=document.createElement("canvas"); rc.width=Math.ceil(w); rc.height=Math.ceil(h*0.28); const rx2=rc.getContext("2d"); rx2.translate(0,h); rx2.scale(1,-1); rx2.drawImage(im,0,0,w,h); rx2.setTransform(1,0,0,1,0,0); rx2.globalCompositeOperation="destination-in"; const rg=rx2.createLinearGradient(0,0,0,rc.height); rg.addColorStop(0,"rgba(0,0,0,.16)"); rg.addColorStop(1,"rgba(0,0,0,0)"); rx2.fillStyle=rg; rx2.fillRect(0,0,rc.width,rc.height); x.drawImage(rc,cx0-w/2,base-2); }
+      put(im,cx0,base,h);
+      x.fillStyle="#8A5B4D"; x.font=F(600,Math.round(W*0.019)); x.fillText("BEAUTY CLEAN",W*0.07,H*0.066);
+    } else if((type==="hero"||type==="dark")&&ims.length===1){
       const im=ims[0], cx0=W/2, top=H*(dark?0.70:0.80), rx=W*0.30, ry=W*0.055, bh=H*0.10;
       x.fillStyle=dark?"rgba(255,255,255,.10)":"#EDE5DA"; const aw=W*0.56, ax=cx0-aw/2, ay=H*0.10; x.beginPath(); x.moveTo(ax,top); x.lineTo(ax,ay+aw/2); x.arc(cx0,ay+aw/2,aw/2,Math.PI,0); x.lineTo(ax+aw,top); x.closePath(); x.fill();
       const lg=x.createRadialGradient(W*0.25,H*0.15,10,W*0.25,H*0.15,W*0.7); lg.addColorStop(0,"rgba(255,255,255,.35)"); lg.addColorStop(1,"rgba(255,255,255,0)"); x.fillStyle=lg; x.fillRect(0,0,W,H);
@@ -1124,13 +1207,13 @@ function sceneImage(k,type,W,H){ W=W||1000; H=H||1000; const ids=Array.isArray(k
       x.save(); x.globalCompositeOperation="multiply"; x.drawImage(src,sx,sy,sw,sh,(W-dw)/2,(H-dh)/2,dw,dh); x.restore();
     } else if(type==="hero"||type==="dark"||type==="group"){
       const n=ims.length, cx0=W/2, area=(type==="group"?0.5:0.8)*W, baseY=H*(type==="group"?0.95:0.86), maxH=H*(type==="group"?0.36:(n>1?0.58:0.66));
-      circ(cx0,baseY-maxH*0.52,Math.min(W*0.42,maxH*0.78),dark?"rgba(255,255,255,.12)":"#EFE8DE");
+      circ(cx0,baseY-maxH*0.52,Math.min(W*0.42,maxH*0.78),dark?"rgba(255,255,255,.12)":"#EFEFED");
       const slot=area/n; const order=n===3?[0,2,1]:[...Array(n).keys()];
       order.forEach(i=>{ const im=ims[i]; const mid=n===3&&i===1; const h=fitH(im,slot*(n>1?1.15:1),maxH*(mid||n<3?1:0.88)); put(im,cx0-area/2+slot*(i+0.5),baseY-(n===3&&!mid?H*0.02:0),h); });
       if(type==="hero"){ x.fillStyle="#8A5B4D"; x.font=F(600,Math.round(W*0.019)); x.fillText("BEAUTY CLEAN",W*0.07,H*0.066); }
     } else {
       const im=ims[0]; const pcx=W*0.74;
-      circ(pcx,H*0.55,W*0.25,"#EFE8DE"); put(im,pcx,H*0.84,fitH(im,W*0.36,H*0.56));
+      circ(pcx,H*0.55,W*0.25,"#EDEDEB"); put(im,pcx,H*0.84,fitH(im,W*0.36,H*0.56));
       const X=W*0.07, MW=W*0.52; let Y=H*0.11;
       const kick=t=>{ x.fillStyle="#8A5B4D"; x.font=F(600,20); wrapLines(x,String(t).toUpperCase(),MW).forEach(l=>{ x.fillText(l,X,Y); Y+=28; }); Y+=14; };
       const head=(t,sz)=>{ x.fillStyle="#111"; x.font=F(600,sz); wrapLines(x,t,MW).forEach(l=>{ x.fillText(l,X,Y); Y+=sz*1.18; }); Y+=22; };
@@ -1223,9 +1306,9 @@ function viewHome(app){
   app.append(hero);
 
   /* 2. fila de garantías (en vez de logos de prensa) */
-  const tr2=el("div","trust"); const tt=el("div","tr");
-  for(let i=0;i<3;i++) ["Pagás al recibir","Envío gratis a todo Paraguay","Entrega en 24 a 72 h hábiles","Cambios hasta 30 días"].forEach(t=>tt.append(el("span",null,t)));
-  tr2.append(tt); app.append(tr2);
+  /* 2. marcas reales de los productos de la tienda (no son menciones de prensa) */
+  { const bs=el("section","brandsec gut"); bs.append(el("p","brandk","Marcas que vas a encontrar")); const br=el("div","brands"); br.setAttribute("aria-label","Marcas disponibles");
+    [["DR. ALTHEA","b1"],["CELIMAX","b2"],["medicube","b3"],["OUHOE","b4"]].forEach(([t,c])=>br.append(el("span",c,t))); bs.append(br); app.append(bs); }
 
   /* 3. categorías */
   const cs=el("section","sec gut");
@@ -1233,6 +1316,8 @@ function viewHome(app){
   CATS.forEach(c=>{ const b=el("button","cat"); b.type="button"; const bg=el("div","bg"); b.append(bg);
     bg.style.background=({antiedad:"linear-gradient(160deg,#8C7B70,#D9C7B8)",hidratacion:"linear-gradient(160deg,#6F8796,#C9D6DD)",ojoslabios:"linear-gradient(160deg,#9A7468,#E6CBBE)",maquillaje:"linear-gradient(160deg,#A08A74,#EADBC9)",herramientas:"linear-gradient(160deg,#6D7268,#CFD3C8)"})[c.id];
     bg.append(sceneImg(CATPROD[c.id],"dark",750,1000));
+    /* si existe una foto propia cat-{id}.jpg en la carpeta, reemplaza a la imagen armada */
+    { const own=new Image(); own.className="own"; own.alt=""; own.onload=()=>{ if(own.naturalWidth>50){ bg.append(own); } }; own.src="cat-"+c.id+".jpg"; }
     b.append(el("h3",null,c.name), el("span","gl","COMPRAR AHORA"));
     if(canEdit&&assets){ photo(el("div"),"cat-"+c.id,"",{noph:true,upTarget:b}); }
     b.addEventListener("click",()=>{filter=c.id; go("productos");}); cr.append(b); });
@@ -1254,7 +1339,7 @@ function viewHome(app){
 
   /* 5. marquee */
   const mq=el("div","bigmq"); const tr=el("div","tr");
-  for(let i=0;i<3;i++){ ["Para tu piel, con mucho mimo","Para tu piel, con mucho amor","Para tu piel, con mucha pasión"].forEach(t=>tr.append(el("span",null,t))); }
+  for(let i=0;i<3;i++){ [["Envío gratis a todo Paraguay",""],["·","dot"],["Pagás al recibir","it"],["·","dot"],["Beauty Clean, Asunción 2026",""],["·","dot"]].forEach(([t,c])=>tr.append(el("span",c||null,t))); }
   mq.append(tr); app.append(mq);
 
   /* 6. banner 1 */
@@ -1430,6 +1515,7 @@ function viewProduct(app,id){
   const g=el("p","ilg"); g.append(el("b",null,"Cambios: "), document.createTextNode("hasta 30 días con el producto sin uso y cerrado.")); inf.append(g);
   w.append(inf); app.append(w);
   videoRail(app,p);
+  undBlock(app,p);
 
   const CT=CONT[p.id];
   if(CT){ const bl=[[CT.aud,CT.q,CT.ctx,CT.a],["Dónde se aplica",CT.zt,CT.zp,CT.b],["Qué podés esperar",CT.et,CT.ep,CT.c]];
@@ -1479,6 +1565,16 @@ function videoRail(app,p){
     v.src=p.id+"-v"+k+".mp4#t=0.1"; };
   setTimeout(add,900);
 }
+/* Bloque educativo: explica el problema en palabras simples y habla de apariencia, no de diagnósticos.
+   Si existen fotos propias {tema}-e1.jpg … e4.jpg en la carpeta, se muestran arriba de cada tarjeta. */
+const UND={"manchas":{"t":"Una mancha no siempre es lo mismo que otra","l":"El sol, la edad, los cambios hormonales o una marca que quedó de un granito pueden dejar zonas más oscuras, y a simple vista se parecen. Una crema cosmética puede ayudar a que el tono se vea más parejo; no diagnostica ni trata enfermedades de la piel.","c":[["Manchas de sol","Aparecen con los años en cara, escote y manos. El protector solar diario evita que se marquen más."],["Marcas de granitos","Suelen aclararse solas con el tiempo. Una buena hidratación acompaña ese proceso."],["Paño o melasma","Zonas oscuras y parejas en frente, mejillas o labio superior. Conviene verlo con un dermatólogo."],["Pecas","Son parte natural de muchas pieles. No hace falta tratarlas ni esconderlas."]],"n":"Si una mancha cambia de color, forma o tamaño, pica o sangra, consultá a un médico."},"lineas":{"t":"No todas las líneas se forman igual","l":"Algunas aparecen por los gestos de todos los días, otras porque la piel está seca o por los años de sol. Un sérum cosmético puede mejorar cómo se ve la textura con uso constante; no borra las líneas ni reemplaza un tratamiento médico.","c":[["Líneas de expresión","Se marcan al sonreír o fruncir el ceño. Son las primeras en aparecer."],["Líneas por sequedad","Finitas, se notan más cuando la piel está tirante. Mejoran mucho con hidratación."],["Líneas por el sol","Años de sol sin protector afinan la piel. El protector diario es el mejor aliado."],["Menos firmeza","Con el tiempo la piel produce menos colágeno y el contorno se ve menos definido."]],"n":"Los activos como el retinol y el retinal se usan de noche y se empiezan de a poco. De día, protector solar."},"firmeza":{"t":"Por qué la piel se ve distinta con los años","l":"Con el tiempo la piel retiene menos agua y se vuelve más fina. Por eso las líneas se notan más cuando está seca. Un cosmético hidrata y mejora cómo se ve y se siente la piel; el resultado depende de la constancia y de cada persona.","c":[["Menos hidratación","La piel madura pierde agua más rápido y se siente tirante."],["Líneas más visibles","En piel seca, cada línea se marca más. Hidratada, se ve más lisa."],["Cuello y escote","Es una piel más fina y suele quedar fuera de la rutina."],["Constancia","Los cambios se ven con el uso de todos los días, no de un día para otro."]],"n":"Ante cualquier reacción desfavorable, suspendé el uso y consultá a un profesional."},"sequedad":{"t":"Piel seca no es lo mismo que piel deshidratada","l":"A la piel seca le falta grasa; a la deshidratada le falta agua, y le puede pasar a cualquier tipo de piel. Las dos se sienten tirantes, pero se cuidan distinto. Un buen hidratante aporta agua y ayuda a retenerla.","c":[["Piel seca","Se siente áspera y a veces se descama. Necesita cremas que nutran."],["Piel deshidratada","Tirante y sin luz, aunque brille. Necesita agua: sérums y texturas livianas."],["Calor y aire acondicionado","El sol, el calor y el aire resecan más de lo que parece."],["Limpieza muy fuerte","Los jabones agresivos y el agua muy caliente dejan la piel tirante."]],"n":"Si la piel se agrieta, arde o no mejora, consultá a un dermatólogo."},"rojeces":{"t":"Por qué la piel se pone roja con facilidad","l":"La piel sensible reacciona al calor, al sol, a ciertos productos o al estrés. Una crema calmante hidrata y ayuda a que el tono se vea más parejo; no trata enfermedades de la piel.","c":[["Piel sensible","Arde o pica con productos nuevos. Le van mejor menos pasos y fórmulas suaves."],["Calor y sol","Con el calor, el rojo se nota más. La sombra y el protector ayudan."],["Piel reseca","Cuando a la piel le falta hidratación, se irrita con más facilidad."],["Rojez que no se va","Si es constante o aparecen granitos, conviene consultar a un dermatólogo."]],"n":"Probá cualquier producto nuevo primero en una zona pequeña."},"labios":{"t":"Por qué los labios se resecan tanto","l":"La piel de los labios es muy fina y casi no tiene protección propia. Por eso se seca antes que el resto de la cara, y el labial marca cada línea. Un cuidado labial hidrata y suaviza; no es un relleno.","c":[["Piel muy fina","Pierde agua rápido, sobre todo con sol, viento o aire acondicionado."],["Mojarse los labios","Alivia un segundo y después reseca más."],["Labial sobre labios secos","El color se cuartea y marca las líneas."],["De noche","Mientras dormís es cuando mejor se recuperan."]],"n":"Si los labios se agrietan y sangran seguido, consultá a un profesional."},"mirada":{"t":"Lo que conviene saber antes de usar pestañas postizas","l":"Las pestañas postizas cambian la mirada al instante, pero muchas se pegan con adhesivo, que puede resultar incómodo. Las magnéticas se sostienen con pequeños imanes y se sacan sin tirones.","c":[["Sin pegamento","No se usa adhesivo cerca del ojo."],["Un poco de práctica","Las primeras veces lleva unos intentos. Después sale rápido."],["Reutilizables","Bien cuidadas y guardadas en su estuche, se usan varias veces."],["Ojos sensibles","Si usás lentes de contacto o tenés los ojos irritados, consultá antes con tu oculista."]],"n":"No las uses si tenés una infección o irritación en los ojos."},"hinchazon":{"t":"Por qué la cara amanece hinchada","l":"Mientras dormimos se acumulan líquidos en el rostro, sobre todo si comimos con mucha sal o dormimos poco. Un masaje suave por la mañana es un momento de cuidado que ayuda a que el rostro se vea más descansado; no es un tratamiento médico.","c":[["Al despertar","Es cuando más se nota, en párpados y mejillas."],["Sal y poco sueño","Favorecen que el cuerpo retenga líquidos."],["Masaje suave","Movimientos hacia arriba, sin apretar, de 3 a 5 minutos."],["Si no se va","Una hinchazón que dura todo el día o duele merece una consulta médica."]],"n":"No uses el cepillo sobre piel irritada, lastimada o con brotes."},"base":{"t":"Por qué a veces la base marca más de lo que tapa","l":"En piel seca o madura, una base pesada se mete en las líneas y las resalta. Las bases tipo cushion son livianas: emparejan el tono sin dejar efecto máscara.","c":[["Piel seca","La base se cuartea. Hidratar antes cambia todo."],["Demasiado producto","Menos es más: capas finas, a toquecitos."],["Tono equivocado","Probá el color en la mandíbula, con luz de día."],["Cobertura liviana","Deja ver la piel y queda más natural."]],"n":"Retirá siempre el maquillaje antes de dormir."}};
+const UNDMAP={"manchas":"manchas","retinol":"lineas","celimax":"lineas","beevenom":"firmeza","balsamo":"firmeza","althea147":"sequedad","pdrn":"sequedad","althea345":"rojeces","lipshot":"labios","pestanas":"mirada","cepillo":"hinchazon","base":"base"};
+function undBlock(app,p){ const k=UNDMAP[p.id], U=UND[k]; if(!U) return;
+  const s=el("section","ilsec gut und"); const i=el("div","in"); s.append(i);
+  i.append(el("p","undk","Primero, entendé lo que ves"), el("h2","undt",U.t), el("p","undl",U.l));
+  const g=el("div","undg"); U.c.forEach(([t,d],n)=>{ const c=el("div","undc"); const ph=el("div","ph"); const im=new Image(); im.alt=""; im.loading="lazy"; im.onload=()=>{ if(im.naturalWidth>50){ ph.append(im); ph.classList.add("on"); } }; im.src=k+"-e"+(n+1)+".jpg";
+    const tx=el("div","tx"); tx.append(el("b",null,t), el("p",null,d)); c.append(ph,tx); g.append(c); });
+  i.append(g); if(U.n) i.append(el("p","undn",U.n)); app.append(s); }
 function rerenderKeep(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
 let bump=false, form={};
 function lineTotal(l){ return l.special!=null? l.special : packPrice(byId[l.id],l.n); }
