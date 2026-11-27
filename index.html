@@ -766,7 +766,7 @@ footer .flinks a{color:#fff;font-size:14px;text-decoration:underline}
       <div class="flogo">Beauty <span>Clean</span></div>
     </div>
     <ul class="ffacts"><li>Envío gratis a todo Paraguay</li><li>Asunción y Gran Asunción: 24 a 48 h hábiles</li><li>Interior: 48 a 72 h hábiles</li><li>Pagás en efectivo al recibir</li><li>Cambios hasta 30 días</li></ul>
-    <p class="fcopy">© 2026, BEAUTY CLEAN · ASUNCIÓN, PARAGUAY</p>
+    <p class="fcopy">© 2026, BEAUTY CLEAN · PARAGUAY</p>
     <p class="fsafe">Tienda online, sin local de venta al público. Nunca te pediremos contraseñas, códigos de seguridad ni datos completos de tarjetas.</p>
   </div>
 </footer>
@@ -966,7 +966,8 @@ async function ensureTiers(id){
   return Object.keys(q).length>0;
 }
 function rerender(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
-async function tdInit(){
+async function tdInit(attempt){
+  attempt=attempt||0;
   if(!window.TD||!TD.on) return;
   try{
     const [store,list,cities]=await Promise.all([TD.getStore(),TD.allProducts(),TD.getCities().catch(()=>null)]);
@@ -981,7 +982,9 @@ async function tdInit(){
     TDS.ready=Object.keys(TDS.map).length>0;
     TD.loadPixel(store); TD.event("PageView");
     rerender();
-  }catch(e){ console.warn("Tiendy no disponible:",e&&e.message); }
+  }catch(e){ console.warn("Tiendy no disponible:",e&&e.message);
+    /* si la tienda no respondió, reintenta sola: sin esto la visita quedaba sin poder pedir */
+    if(!TDS.ready&&attempt<4) setTimeout(()=>tdInit(attempt+1),[1500,4000,9000,20000][attempt]); }
 }
 const tcase=t=>String(t||"").toLowerCase().replace(/(^|[\s.\-(])([a-záéíóúñü])/g,(m,a,b)=>a+b.toUpperCase()).replace(/ (De|Del|La|Las|Los|Y) /g,m=>m.toLowerCase());
 function tdCheckoutFields(fm){
@@ -1104,7 +1107,7 @@ let cart=[]; try{cart=JSON.parse(localStorage.getItem("bc.cart")||"[]")||[];}cat
 const saveCart=()=>{try{localStorage.setItem("bc.cart",JSON.stringify(cart));}catch(e){} $("cartCount").textContent=cart.reduce((a,l)=>a+l.n,0);};
 
 /* marquesina */
-const pillTxt=["ENVÍO GRATIS | © BEAUTY CLEAN ASUNCIÓN, 2026","PAGÁS AL RECIBIR | TODO PARAGUAY","BLACK FRIDAY | 2 UNIDADES 30% MENOS","3 UNIDADES 35% MENOS | CEPILLO DE REGALO"];
+const pillTxt=["ENVÍO GRATIS | © BEAUTY CLEAN PARAGUAY, 2026","PAGÁS AL RECIBIR | TODO PARAGUAY","BLACK FRIDAY | 2 UNIDADES 30% MENOS","3 UNIDADES 35% MENOS | CEPILLO DE REGALO"];
 const pt=$("pillTr"); for(let i=0;i<4;i++) pillTxt.forEach(t=>pt.append(el("span",null,t)));
 
 /* fotos (el dueño las sube desde la página) */
@@ -1339,7 +1342,7 @@ function viewHome(app){
 
   /* 5. marquee */
   const mq=el("div","bigmq"); const tr=el("div","tr");
-  for(let i=0;i<3;i++){ [["Envío gratis a todo Paraguay",""],["·","dot"],["Pagás al recibir","it"],["·","dot"],["Beauty Clean, Asunción 2026",""],["·","dot"]].forEach(([t,c])=>tr.append(el("span",c||null,t))); }
+  for(let i=0;i<3;i++){ [["Envío gratis a todo Paraguay",""],["·","dot"],["Pagás al recibir","it"],["·","dot"],["Beauty Clean, Paraguay 2026",""],["·","dot"]].forEach(([t,c])=>tr.append(el("span",c||null,t))); }
   mq.append(tr); app.append(mq);
 
   /* 6. banner 1 */
