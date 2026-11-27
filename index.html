@@ -15,8 +15,9 @@ window.TIENDY_CONFIG = {
   BASE: "https://www.tiendy.com.py/api/storefront/v1",
   /* Opcional: slug de cada producto en Tiendy si el nombre no coincide exactamente. */
   SLUGS: {},
-  /* Ruleta de premios. on:false la apaga. Cada premio es un cupón creado en Tiendy → Promociones → Cupones. */
-  RULETA: { on: true, stackNote: "No se suma a los packs de 2 o 3 unidades." }
+  /* Ruleta de premios. on:false la apaga. Cada premio es un cupón creado en Tiendy → Promociones → Cupones.
+     api: dirección del registro (planilla de Google "Beauty Clean - Ruleta y clientas"). No es una clave. */
+  RULETA: { on: true, api: "https://script.google.com/macros/s/AKfycbzsiUv4MfGBGFR_3TM20DmGMFLWDZs7ZPnQKEGCRbI1CnWua5XsgE9auA8IuzYPjpZ-fg/exec", stackNote: "No se suma a los packs de 2 o 3 unidades." }
 };
 </script>
 <script>
