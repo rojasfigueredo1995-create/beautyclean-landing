@@ -14,7 +14,9 @@ window.TIENDY_CONFIG = {
   PK: "pk_T1g-7gdxvDR8v4j5tEsclR-lNTvTC2ENw1fiohD9mlQ",
   BASE: "https://www.tiendy.com.py/api/storefront/v1",
   /* Opcional: slug de cada producto en Tiendy si el nombre no coincide exactamente. */
-  SLUGS: {}
+  SLUGS: {},
+  /* Ruleta de premios. on:false la apaga. Cada premio es un cupón creado en Tiendy → Promociones → Cupones. */
+  RULETA: { on: true, stackNote: "No se suma a los packs de 2 o 3 unidades." }
 };
 </script>
 <script>
@@ -1106,8 +1108,11 @@ async function tdSum(S){
   const base={items}; if(form.cCiu) base.cityId=form.cCiu; if(opt&&opt.request&&opt.request.customPaymentMethodId) base.customPaymentMethodId=opt.request.customPaymentMethodId; if(opt&&opt.request&&opt.request.viaStripe) base.viaStripe=true;
   const cp=tdCoupon(); let cpMsg="";
   /* con premio: si la tienda no lo acepta para este carrito, cotiza sin premio y avisa */
-  const Q=async b=>{ if(cp&&!cpMsg){ try{ return await TD.quote(Object.assign({couponCode:cp.code},b)); }catch(e){ if(e instanceof TypeError||e.status>=500||e.status===429) throw e;
-      cpMsg=e.code==="BUNDLE_COUPON_CONFLICT"?"Tu premio no se suma a los packs de 2 o 3 unidades.":"No pudimos aplicar tu premio"+(e.message?": "+e.message:"."); } } return TD.quote(b); };
+  const Q=async b=>{ if(cp&&!cpMsg){ let err; try{ return await TD.quote(Object.assign({couponCode:cp.code},b)); }catch(e){ if(e.status>=500||e.status===429) throw e; err=e; }
+      /* sin premio tiene que cotizar bien; si tampoco cotiza, el problema no es el premio */
+      const r=await TD.quote(b);
+      cpMsg=err.code==="BUNDLE_COUPON_CONFLICT"?"Tu premio ("+cp.t+") no se suma a los packs de 2 o 3 unidades: se aplica llevando 1 unidad de cada producto.":"No pudimos aplicar tu premio"+(err.message&&!(err instanceof TypeError)?": "+err.message:".");
+      return r; } return TD.quote(b); };
   try{
     let q=await Q(Object.assign({},base,TDS.ship?{shippingMethodId:TDS.ship}:{}));
     const av=q.availableShippingMethodIds||[];
@@ -1157,7 +1162,8 @@ async function tdSubmit(fm,btn){
     go("gracias");
   }catch(e){
     fm.querySelectorAll(".paybtn").forEach(b=>b.disabled=false); useBtn.innerHTML=keep;
-    if(body.couponCode&&!e.code&&(e.status===409||e.status===422||e.status===400)){ ckSig=null; rlBad(); say("Tu premio de la ruleta ya no se puede usar"+(e.message?" ("+e.message+")":"")+". Actualizamos el total: revisalo y tocá de nuevo para pedir."); drawSum(); }
+    if(body.couponCode&&e.code==="BUNDLE_COUPON_CONFLICT"){ ckSig=null; TDS.cpOk=false; say("Tu premio no se suma a los packs de 2 o 3 unidades. Actualizamos el total: revisalo y tocá de nuevo para pedir."); drawSum(); }
+    else if(body.couponCode&&!e.code&&(e.status===409||e.status===422||e.status===400)){ ckSig=null; rlBad(); say("Tu premio de la ruleta ya no se puede usar"+(e.message?" ("+e.message+")":"")+". Actualizamos el total: revisalo y tocá de nuevo para pedir."); drawSum(); }
     else if(e.code==="INSUFFICIENT_STOCK"){ ckSig=null; say("Uno de los productos no tiene stock suficiente para esa cantidad. Ajustá el carrito y probá de nuevo."); drawSum(); }
     else if(e.code==="RATE_LIMITED") say("Hay muchos pedidos en este momento. Esperá unos segundos y probá de nuevo.");
     else if(e.code==="ORIGIN_NOT_ALLOWED") say("Esta página todavía no está autorizada en la tienda.");
@@ -1283,7 +1289,7 @@ function rlOpen(){
   const showWin=(s,fresh)=>{ head.textContent=""; body.textContent="";
     if(RL_DEMO) head.append(el("span","rdemo","MODO PRUEBA · TODAVÍA NO SE APLICA"));
     head.append(el("span","re",fresh?"¡Felicidades!":"Tu premio"), el("h2","rwin",s.t)); head.querySelector("h2").id="rlT";
-    body.append(el("p","rs",s.d+"."), el("p","rs",s.used?"Ya usaste este premio en tu pedido.":s.expired?"Este premio venció el "+rlFecha(s.exp)+".":"Ya quedó guardado: se descuenta solo cuando finalizás tu pedido. Vale hasta el "+rlFecha(s.exp)+"."));
+    body.append(el("p","rs",s.d+"."), el("p","rs",s.used?"Ya usaste este premio en tu pedido.":s.expired?"Este premio venció el "+rlFecha(s.exp)+".":"Ya quedó guardado: se descuenta solo cuando finalizás tu pedido. Vale hasta el "+rlFecha(s.exp)+"."+(RULETA.stackNote?" "+RULETA.stackNote:"")));
     const go2=el("button","rgo",s.used||s.expired?"SEGUIR MIRANDO":"USAR MI PREMIO AHORA"); go2.type="button"; go2.addEventListener("click",()=>{ rlClose(); if(!s.used&&!s.expired&&!/^#(p-|checkout)/.test(location.hash)){ if(cart.length) openCart(); else go("productos"); } }); body.append(go2);
     if(RL_DEMO){ const again=el("button","rno","Girar de nuevo (solo en modo prueba)"); again.type="button"; again.addEventListener("click",()=>{ showForm(); }); body.append(again); }
     body.append(bases()); go2.focus(); };
@@ -1328,7 +1334,7 @@ function rlSync(){
   rlTimer=setTimeout(()=>{ if(!document.getElementById("rlM")&&$("drawer").hidden) rlOpen(); },RL_DEMO?900:RULETA.delay);
 }
 /* aviso del premio en el carrito */
-function rlCartNote(box){ const s=tdCoupon(); if(!s) return; const r=el("div","rlrow"); r.innerHTML=GIFTICO; r.append(document.createTextNode("Tu premio: "+s.t+". Se descuenta al finalizar el pedido.")); box.append(r); }
+function rlCartNote(box){ const s=tdCoupon(); if(!s) return; const r=el("div","rlrow"); r.innerHTML=GIFTICO; r.append(document.createTextNode("Tu premio: "+s.t+". Se descuenta al finalizar el pedido."+(RULETA.stackNote?" "+RULETA.stackNote:""))); box.append(r); }
 if(RL_DEMO) window.__rl={slices:rlSlices,roll:rlRoll};
 
 let cart=[]; try{cart=JSON.parse(localStorage.getItem("bc.cart")||"[]")||[];}catch(e){cart=[];}
