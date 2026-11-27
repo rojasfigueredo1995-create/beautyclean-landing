@@ -439,6 +439,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .rl .bad input{border-color:#B3261E}.rl .rerr{color:#B3261E;font-size:13px;min-height:0;display:block;margin-top:3px}
 .rl .rgo{width:100%;min-height:58px;border:0;border-radius:29px;background:#000;color:#fff;font-weight:600;font-size:16px;letter-spacing:.06em;cursor:pointer}
 .rl .rgo[disabled]{opacity:.55}
+.rl .rwa{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #000;border-radius:29px;background:#fff;color:#000;font-weight:600;font-size:15px;letter-spacing:.2px;text-decoration:none}
 .rl .rno{background:none;border:0;text-decoration:underline;font-size:14px;min-height:44px;cursor:pointer;color:rgba(0,0,0,.7)}
 .rl .rleg{font-size:12px;line-height:1.45;color:rgba(0,0,0,.6);margin:0;letter-spacing:.1px}
 .rl details{width:100%;text-align:left;font-size:12.5px;line-height:1.5;color:rgba(0,0,0,.7);letter-spacing:.1px}
@@ -1296,6 +1297,10 @@ function rlOpen(){
     body.append(el("p","rs",s.d+"."), el("p","rs",s.used?"Ya usaste este premio en tu pedido.":s.expired?"Este premio venció el "+rlFecha(s.exp)+".":"Ya quedó guardado: se descuenta solo cuando finalizás tu pedido. Vale hasta el "+rlFecha(s.exp)+"."));
     if(!s.used&&!s.expired){ const n=el("p","rs",s.one?"Vale para 1 sola unidad de 1 producto. No se suma a los packs ni a otras ofertas.":(RULETA.stackNote||"")); n.style.fontWeight="600"; n.style.color="#000"; if(n.textContent) body.append(n); }
     const go2=el("button","rgo",s.used||s.expired?"SEGUIR MIRANDO":"USAR MI PREMIO AHORA"); go2.type="button"; go2.addEventListener("click",()=>{ rlClose(); if(!s.used&&!s.expired&&!/^#(p-|checkout)/.test(location.hash)){ if(cart.length) openCart(); else go("productos"); } }); body.append(go2);
+    /* guardar el premio en su WhatsApp: ella envía el mensaje ya escrito y el premio queda en el chat con la tienda */
+    if(WA_NUM&&!s.used&&!s.expired){ const w=el("a","rwa"); w.innerHTML=WAICO; w.append(document.createTextNode("Guardar mi premio en WhatsApp"));
+      w.href="https://wa.me/"+WA_NUM+"?text="+encodeURIComponent("Hola Beauty Clean! Gané "+s.t+" en la ruleta ("+s.d+"). Quiero guardar mi premio. Vale hasta el "+rlFecha(s.exp)+"."); w.target="_blank"; w.rel="noopener";
+      body.append(w, el("p","rleg","Se abre WhatsApp con el mensaje listo: tocá enviar y tu premio queda guardado en nuestro chat.")); }
     if(RL_DEMO){ const again=el("button","rno","Girar de nuevo (solo en modo prueba)"); again.type="button"; again.addEventListener("click",()=>{ showForm(); }); body.append(again); }
     body.append(bases()); go2.focus(); };
   const spin=(tel,mail,btn)=>{ const r=rlRoll(SL); btn.disabled=true; btn.textContent="GIRANDO…";
