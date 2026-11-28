@@ -1131,7 +1131,7 @@ async function tdSum(S){
     S.querySelectorAll(".row.e,.row.t,.row.q,.stockw").forEach(n=>n.remove());
     const row=(a,b,c)=>{const r=el("div","row "+(c||"q")); r.append(el("span",null,a),el("span",null,b)); S.append(r);};
     if(q.bundleSavings) row("Ahorro por packs","− "+gs(q.bundleSavings));
-    if(q.couponDiscount) row(TDS.cpOk?"Tu premio · "+cp.t:"Cupón","− "+gs(q.couponDiscount));
+    if(q.couponDiscount) row(TDS.cpOk?"Tu premio · "+(cp.row||cp.t):"Cupón","− "+gs(q.couponDiscount));
     else if(TDS.cpOk) row("Tu premio",cp.t);
     if(cpMsg) S.append(el("p","note stockw",cpMsg));
     const pa=q.paymentAdjustment&&typeof q.paymentAdjustment==="object"?Number(q.paymentAdjustment.amount)||0:Number(q.paymentAdjustment)||0;
@@ -1166,7 +1166,7 @@ async function tdSubmit(fm,btn){
     const its=cart.map(l=>({id:l.id,n:l.n,tone:l.tone||null})), bid=bump&&BUMP.id||null;
     last={total:r.total,orderId:r.id,token:r.publicToken,tracking:r.trackingUrl,status:r.status,opt,name:form.cNom,tel:form.cTel,dep:dep?dep.name:"",pago:"td",items:its,bumpId:bid,body,extra:[]};
     try{ localStorage.setItem("bc.lastOrder",JSON.stringify({token:r.publicToken,id:r.id,name:form.cNom,tel:form.cTel,items:its,bumpId:bid,dep:last.dep,at:Date.now()})); }catch(e){}
-    if(body.couponCode) rlUsed(r.id);
+    if(body.couponCode){ const pz=rlGet(); if(pz) last.prize={t:pz.t,gift:pz.gift||""}; rlUsed(r.id); }
     tdOrdLink();
     cart=[]; bump=false; saveCart(); ckSig=null;
     if(opt&&opt.kind==="stripe"){ const p=await TD.pay(r.publicToken,location.origin+location.pathname+"#gracias"); const u=p&&(p.url||p.checkoutUrl||p.redirectUrl); if(u){ location.href=u; return; } }
@@ -1191,6 +1191,7 @@ function tdThanksExtra(w){
   else{ const ol=el("ol","tsteps"); ol.setAttribute("aria-label","Estado de tu pedido"); TSTEPS.forEach((x,i)=>{ const li=el("li",i<=ix?"on":null,x[1]); if(i===ix) li.setAttribute("aria-current","step"); ol.append(li); }); w.append(ol); }
   if(last.tracking&&/^https:\/\//.test(last.tracking)){ const a=el("a","tbtn"); a.innerHTML=BOXICO; a.append(document.createTextNode("Ver el estado de mi paquete")); a.href=last.tracking; a.target="_blank"; a.rel="noopener";
     w.append(a, el("p","tcap","Entrá cuando quieras para ver por dónde va: confirmado, en preparación, en camino o entregado.")); }
+  if(last.prize){ const g=el("p","tcap",last.prize.gift||("Tu premio de la ruleta ("+last.prize.t+") quedó aplicado en este pedido.")); g.style.cssText="color:#1D6A39;font-weight:600;margin-top:0!important"; w.append(g); }
   const m=last.opt&&last.opt.manual;
   if(m&&m.type!=="CASH"&&(m.accounts||[]).length){ const b=el("div","payinfo"); b.style.textAlign="left"; b.append(el("h2",null,"Datos para la transferencia")); if(m.instructions) b.append(el("p",null,m.instructions));
     (m.accounts||[]).forEach(a=>{ const p=el("p"); Object.values(a).filter(v=>typeof v==="string"||typeof v==="number").forEach((v,i)=>{ if(i) p.append(document.createElement("br")); p.append(document.createTextNode(String(v))); }); b.append(p); });
@@ -1245,14 +1246,14 @@ const RULETA=Object.assign({on:false,delay:3500,hours:48,days:30,api:"",leadUrl:
   prizes:[
     {id:"p10",t:"10% OFF",d:"10% de descuento en 1 unidad del producto que elijas",code:"RULETA10",w:40,one:true},
     {id:"p20",t:"20% OFF",d:"20% de descuento en 1 unidad del producto que elijas",code:"RULETA20",w:25,one:true},
-    {id:"reg",t:"REGALO",d:"Un regalo sorpresa dentro de tu paquete",code:"REGALO",w:20},
+    {id:"reg",t:"REGALO",d:"Un cepillo para la cara de regalo dentro de tu paquete",code:"REGALO",w:20,row:"Cepillo para la cara de regalo",gift:"Tu cepillo para la cara va de regalo dentro de tu paquete."},
     {id:"gc",t:"GIFT CARD",d:"Gift card de Gs. 30.000 para tu compra",code:"GIFT30",w:10},
     {id:"p50",t:"50% OFF",d:"50% de descuento en 1 unidad del producto que elijas",code:"RULETA50",w:5,one:true}
   ]},(window.TIENDY_CONFIG||{}).RULETA||{});
 const RL_DEMO=/[?&]ruleta=demo\b/.test(location.search);
 const RL_KEY="bc.ruleta";
 const GIFTICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v8h14v-8M12 8v12M12 8c-2-4-6-3-5-1 .6 1.2 3 1 5 1zM12 8c2-4 6-3 5-1-.6 1.2-3 1-5 1z"/></svg>';
-function rlGet(){ try{ const s=JSON.parse(localStorage.getItem(RL_KEY)||"null"); if(!s||!s.id) return null; s.next=(s.at||0)+RULETA.days*864e5; if(Date.now()>s.next){ localStorage.removeItem(RL_KEY); return null; } s.expired=!!(s.exp&&Date.now()>s.exp); const p=RULETA.prizes.find(x=>x.id===s.id); if(p){ s.t=p.t; s.d=p.d; s.code=s.code==="NOEXISTE"?s.code:p.code; s.one=!!p.one; } return s; }catch(e){ return null; } }
+function rlGet(){ try{ const s=JSON.parse(localStorage.getItem(RL_KEY)||"null"); if(!s||!s.id) return null; s.next=(s.at||0)+RULETA.days*864e5; if(Date.now()>s.next){ localStorage.removeItem(RL_KEY); return null; } s.expired=!!(s.exp&&Date.now()>s.exp); const p=RULETA.prizes.find(x=>x.id===s.id); if(p){ s.t=p.t; s.d=p.d; s.row=p.row||p.t; s.gift=p.gift||""; s.code=s.code==="NOEXISTE"?s.code:p.code; s.one=!!p.one; } return s; }catch(e){ return null; } }
 /* los descuentos con "one" valen para 1 sola unidad en el pedido */
 const rlUnits=()=>cart.reduce((a,l)=>a+l.n,0)+(bump&&BUMP.id?1:0);
 const rlFits=s=>!s.one||rlUnits()===1;
