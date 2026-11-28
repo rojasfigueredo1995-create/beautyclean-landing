@@ -19,10 +19,18 @@ window.TIENDY_CONFIG = {
   WA: "0992549957",
   /* Ruleta de premios. on:false la apaga. Cada premio es un cupón creado en Tiendy → Promociones → Cupones.
      api: dirección del registro (planilla de Google "Beauty Clean - Ruleta y clientas"). No es una clave. */
-  /* Opiniones: solo capturas o mensajes reales, con permiso de la clienta. Nombre de pila y ciudad; nunca el número. */
+  /* Opiniones: solo capturas reales del WhatsApp de la tienda. Nunca el número ni el apellido.
+     n = nombre de pila (solo si la clienta dio permiso para mostrarlo); a = cómo nombrarla si no se muestra el nombre;
+     pid = producto de la página al que corresponde (aparece primero en esa página). */
   OPINIONES: [
-    { n: "Dorita", c: "Encarnación", f: "11 de noviembre de 2026", t: "Sí .confirmo mi pedido Ya compré uno y es buenísimo por eso quiero otro", p: "Crema contorno de ojos", img: "op-dorita.jpg", w: 620, h: 612 },
-    { n: "Eva", c: "Saltos del Guairá", f: "11 de noviembre de 2026", t: "Gracias me encantó, muy amable", img: "op-eva.jpg", w: 620, h: 324 }
+    { a: "Clienta de Ciudad del Este", f: "17 de noviembre de 2026", t: "Recibido muchas gracias... Realmente muy buen servicio ... Esto demuestra que son una empresa seria ...", k: "Sobre", p: "la atención de la tienda", pid: "retinol", img: "op-diana.jpg", w: 620, h: 400 },
+    { n: "Dorita", c: "Encarnación", f: "11 de noviembre de 2026", t: "Sí .confirmo mi pedido Ya compré uno y es buenísimo por eso quiero otro", k: "Sobre", p: "Crema contorno de ojos", img: "op-dorita.jpg", w: 620, h: 612 },
+    { a: "Cliente de Asunción", f: "30 de octubre de 2026", t: "Recibido gracias", k: "Entrega", p: "el mismo día", img: "op-gustavo.jpg", w: 620, h: 412 },
+    { n: "Eva", c: "Saltos del Guairá", f: "11 de noviembre de 2026", t: "Gracias me encantó, muy amable", img: "op-eva.jpg", w: 620, h: 324 },
+    { a: "Clienta de Curuguaty", f: "17 de noviembre de 2026", t: "Buen día... Recibido la encomienda, muchas gracias..", k: "Envío", p: "por encomienda al interior", img: "op-gladys.jpg", w: 620, h: 312 },
+    { a: "Clienta de Beauty Clean", f: "5 de octubre de 2026", t: "Recibidoo mis pedidos. Y un regalo vino", k: "Dato", p: "volvió a comprar el 30 de octubre", img: "op-ines.jpg", w: 620, h: 256 },
+    { a: "Clienta de Beauty Clean", f: "14 de noviembre de 2026", t: "Hola. Ya me llegó. Gracias!!", k: "Entrega", p: "al día siguiente", img: "op-norma.jpg", w: 620, h: 156 },
+    { a: "Clienta de Yguazú", f: "3 de noviembre de 2026", t: "Recibido. Gracias.", k: "Pidió", p: "Pestañas magnéticas", pid: "pestanas", img: "op-namie.jpg", w: 620, h: 144 }
   ],
   RULETA: { on: true, api: "https://script.google.com/macros/s/AKfycbzsiUv4MfGBGFR_3TM20DmGMFLWDZs7ZPnQKEGCRbI1CnWua5XsgE9auA8IuzYPjpZ-fg/exec", stackNote: "No se suma a los packs de 2 o 3 unidades." }
 };
@@ -816,19 +824,30 @@ footer .flinks a{color:#fff;font-size:14px;text-decoration:underline}
 .lpbig span{text-shadow:0 1px 10px rgba(0,0,0,.45)}
 .age .kicker{margin:0 0 6px}.age h2{margin:0 0 8px;font-weight:600;letter-spacing:-.9px;font-size:clamp(26px,3.4vw,40px);line-height:1.1}
 .age .lead2{margin:0 0 22px;color:#625D58;font-size:17px;max-width:640px}
-.opin{padding-block:56px 12px}
+.opin{padding-block:48px 12px;overflow:hidden}
+.ophd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
 .opin .kicker{margin:0 0 6px}.opin h2{margin:0 0 8px;font-family:"Playfair Display",Georgia,serif;font-weight:500;letter-spacing:-.4px;font-size:clamp(28px,3.6vw,42px);line-height:1.1;color:#000}
-.opin .lead2{margin:0 0 24px;font-size:17px;max-width:640px}
-.opgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;max-width:1100px}
-.opcard{margin:0;background:#F5F3EF;border:1px solid #E4E3E1;border-radius:18px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:14px}
+.opin .lead2{margin:0;font-size:17px;max-width:640px}
+.opnav{display:flex;align-items:center;gap:10px;flex:none}
+.opnav button{width:44px;height:44px;border-radius:50%;border:1px solid #1d1d1d;background:#fff;color:#000;display:grid;place-items:center;cursor:pointer;padding:0}
+.opnav button:disabled{opacity:.3;cursor:default}.opnav button:focus-visible,.oprail:focus-visible{outline:2px solid #000;outline-offset:3px}
+.opct{font-size:13px;color:#625D58;font-variant-numeric:tabular-nums;min-width:44px;text-align:center}
+@media (max-width:700px){.opnav{display:none}}
+.oprail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));scroll-padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.oprail::-webkit-scrollbar{display:none}
+@media (min-width:900px){.oprail{margin-inline:-48px;padding-inline:48px;scroll-padding-inline:48px}}
+.opcard{flex:0 0 min(82vw,340px);scroll-snap-align:start;margin:0;background:#F5F3EF;border:1px solid #E4E3E1;border-radius:18px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:12px}
 .opfrom{display:flex;align-items:center;gap:7px;margin:0;font-size:12.5px;color:#6F6963}.opfrom svg{flex:none;width:16px;height:16px;color:#1F1F1F}
+.opshotw{background:#161717;border-radius:14px;overflow:hidden;display:flex;align-items:center;aspect-ratio:1/1}
+.opshot{display:block;width:100%;height:auto}
 .opbub{margin:0;background:#fff;border:1px solid #E7E2DA;border-radius:4px 18px 18px 18px;padding:14px 16px;font-size:18px;line-height:1.45;letter-spacing:-.2px;color:#161616;overflow-wrap:anywhere}
-.opshot{display:block;width:100%;max-width:360px;height:auto;border-radius:14px;background:#111;border:1px solid #1d1d1d}
 .opabout{margin:0;font-size:13.5px;color:#625D58}.opabout b{font-weight:600;color:#2B2926}
 .opwho{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:2px}
 .opav{flex:none;width:42px;height:42px;border-radius:50%;background:#111;color:#E9D7B0;display:grid;place-items:center;font-family:"Playfair Display",Georgia,serif;font-size:19px;line-height:1}
 .opwho div b{display:block;font-weight:600;color:#000;font-size:15px}.opwho div span{display:block;color:#625D58;font-size:13.5px}
-.opnote{margin:16px 0 0;font-size:13px;line-height:1.5;color:#6F6963;max-width:640px}
+.opbar{height:2px;background:#E4E3E1;margin:16px 0 0;max-width:340px}.opbar i{display:block;height:100%;width:0;background:#000;transition:width .25s ease}
+@media (prefers-reduced-motion:reduce){.opbar i{transition:none}}
+.opnote{margin:14px 0 0;font-size:13px;line-height:1.5;color:#6F6963;max-width:640px}
 .agegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 @media (max-width:860px){.agegrid{grid-template-columns:minmax(0,1fr)}}
 .agecard{background:#F5F3EF;border:1px solid #E4E3E1;border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:10px}
@@ -1481,20 +1500,32 @@ function card(p){
   return b;
 }
 function rail(ids){ const r=el("div","rail prods"); ids.forEach(id=>r.append(card(byId[id]))); return r; }
-/* opiniones: solo mensajes reales, copiados tal cual, con nombre de pila y ciudad (sin número). Se cargan en la configuración. */
-function opinSec(){
-  const L=((window.TIENDY_CONFIG||{}).OPINIONES||[]).filter(o=>o&&o.t&&o.n); if(!L.length) return null;
-  const s=el("section","sec gut opin"); s.id="opiniones";
-  s.append(el("p","kicker","Clientas reales"), el("h2",null,"Lo que nos escriben por WhatsApp"), el("p","lead2",L.some(o=>o.img)?"Capturas reales de nuestro chat con clientas de Paraguay.":"Mensajes de clientas de Paraguay, tal como llegaron."));
-  const g=el("div","opgrid");
+/* opiniones: capturas reales del WhatsApp de la tienda, en carrusel para deslizar. Se cargan en la configuración.
+   pid: en la página de un producto, primero van las que hablan de ese producto. */
+function opinSec(pid){
+  let L=((window.TIENDY_CONFIG||{}).OPINIONES||[]).filter(o=>o&&o.t&&(o.n||o.a)); if(!L.length) return null;
+  if(pid) L=L.filter(o=>o.pid===pid).concat(L.filter(o=>o.pid!==pid));
+  const s=el("section","sec gut opin"); if(!pid) s.id="opiniones";
+  const hd=el("div","ophd"), tx=el("div"); tx.append(el("p","kicker","Chats reales"), el("h2",null,"Lo que nos escriben por WhatsApp"), el("p","lead2","Capturas reales de nuestro chat con clientas de Paraguay."+(L.length>1?" Deslizá para ver más.":"")));
+  const nav=el("div","opnav"), mk=(t,d)=>{ const b=el("button",null); b.type="button"; b.setAttribute("aria-label",t); b.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+d+'"/></svg>'; return b; };
+  const bp=mk("Opinión anterior","M15 5l-7 7 7 7"), bn=mk("Opinión siguiente","M9 5l7 7-7 7"), ct=el("span","opct"); ct.setAttribute("aria-live","polite"); nav.append(bp,ct,bn);
+  hd.append(tx); if(L.length>1) hd.append(nav); s.append(hd);
+  const g=el("div","oprail"); g.tabIndex=0; g.setAttribute("role","group"); g.setAttribute("aria-label","Opiniones de clientas. Deslizá o usá las flechas.");
   L.forEach(o=>{ const c=el("figure","opcard");
     const f=el("p","opfrom"); f.innerHTML=WAICO; f.append(document.createTextNode("Mensaje de WhatsApp"+(o.f?" · "+o.f:""))); c.append(f);
-    /* captura real del chat (sin número) o, si no hay, el texto tal cual */
-    if(o.img){ const im=el("img","opshot"); im.src=o.img; im.alt="Captura de WhatsApp. La clienta escribió: "+o.t; im.loading="lazy"; im.decoding="async"; if(o.w&&o.h){ im.width=o.w; im.height=o.h; } c.append(im); } else c.append(el("blockquote","opbub",o.t));
-    if(o.p){ const ab=el("p","opabout"); ab.append(document.createTextNode("Sobre: "), el("b",null,o.p)); c.append(ab); }
-    const w=el("figcaption","opwho"), tx=el("div"); tx.append(el("b",null,o.n)); if(o.c) tx.append(el("span",null,o.c)); const av=el("span","opav",o.n.trim().charAt(0).toUpperCase()); av.setAttribute("aria-hidden","true"); w.append(av,tx); c.append(w);
-    g.append(c); });
-  s.append(g, el("p","opnote",L.some(o=>o.img)?"Son capturas reales de WhatsApp, sin retoques y publicadas con permiso. No mostramos el número de nadie.":"Son mensajes reales, copiados palabra por palabra y publicados con permiso. No mostramos el número de nadie."));
+    if(o.img){ const sh=el("div","opshotw"), im=el("img","opshot"); im.src=o.img; im.alt="Captura de WhatsApp. Escribió: "+o.t; im.loading="lazy"; im.decoding="async"; if(o.w&&o.h){ im.width=o.w; im.height=o.h; } sh.append(im); c.append(sh); } else c.append(el("blockquote","opbub",o.t));
+    if(o.p){ const ab=el("p","opabout"); ab.append(document.createTextNode((o.k||"Sobre")+": "), el("b",null,o.p)); c.append(ab); }
+    const w=el("figcaption","opwho"), t2=el("div"), av=el("span","opav"); av.setAttribute("aria-hidden","true");
+    if(o.n){ av.textContent=o.n.trim().charAt(0).toUpperCase(); t2.append(el("b",null,o.n)); if(o.c) t2.append(el("span",null,o.c)); }
+    else { av.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.5-5.4 7-5.4s6.2 1.8 7 5.4"/></svg>'; t2.append(el("b",null,o.a)); t2.append(el("span",null,"Nombre reservado")); }
+    w.append(av,t2); c.append(w); g.append(c); });
+  s.append(g);
+  if(L.length>1){ const bar=el("div","opbar"), fill=el("i"); bar.append(fill); s.append(bar);
+    const step=()=>{ const c=g.querySelector(".opcard"); return c?c.getBoundingClientRect().width+12:300; };
+    const upd=()=>{ const max=g.scrollWidth-g.clientWidth, i=max<=4?0:Math.min(L.length-1,Math.round(g.scrollLeft/step())), end=g.scrollLeft>=max-4; const n=end?L.length:i+1; ct.textContent=n+" / "+L.length; fill.style.width=(n/L.length*100)+"%"; bp.disabled=g.scrollLeft<=4; bn.disabled=end; };
+    bp.addEventListener("click",()=>g.scrollBy({left:-step(),behavior:"smooth"})); bn.addEventListener("click",()=>g.scrollBy({left:step(),behavior:"smooth"}));
+    let tk=0; g.addEventListener("scroll",()=>{ if(tk) return; tk=requestAnimationFrame(()=>{ tk=0; upd(); }); },{passive:true}); setTimeout(upd,60); }
+  s.append(el("p","opnote","Son capturas reales de nuestro WhatsApp, sin retoques. No mostramos el número ni el apellido de nadie."));
   return s;
 }
 function secHead(title,count,link){ const h=el("div","sh"); const t=el("h2",null,title); if(count){const s=el("sup",null,String(count)); t.append(s);} h.append(t); if(link){const a=el("a",null,"Ver todo ›"); a.addEventListener("click",()=>go(link)); h.append(a);} return h; }
@@ -1877,6 +1908,8 @@ function viewProduct(app,id){
   const add=el("button","ilcart","Añadir al carrito"); add.type="button"; add.addEventListener("click",()=>addToCart(p.id,sel.n,tone())); inf.append(add);
   const g=el("p","ilg"); g.append(el("b",null,"Cambios: "), document.createTextNode("hasta 30 días con el producto sin uso y cerrado.")); inf.append(g);
   w.append(inf); app.append(w);
+  /* opiniones reales, justo debajo del bloque de compra */
+  { const o=opinSec(p.id); if(o) app.append(o); }
   videoRail(app,p);
   undBlock(app,p);
 
