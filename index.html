@@ -15,6 +15,8 @@ window.TIENDY_CONFIG = {
   BASE: "https://www.tiendy.com.py/api/storefront/v1",
   /* Opcional: slug de cada producto en Tiendy si el nombre no coincide exactamente. */
   SLUGS: {},
+  /* WhatsApp de Beauty Clean para todos los botones de la página. Vacío = usa el número cargado en la tienda de Tiendy. */
+  WA: "0992549957",
   /* Ruleta de premios. on:false la apaga. Cada premio es un cupón creado en Tiendy → Promociones → Cupones.
      api: dirección del registro (planilla de Google "Beauty Clean - Ruleta y clientas"). No es una clave. */
   RULETA: { on: true, api: "https://script.google.com/macros/s/AKfycbzsiUv4MfGBGFR_3TM20DmGMFLWDZs7ZPnQKEGCRbI1CnWua5XsgE9auA8IuzYPjpZ-fg/exec", stackNote: "No se suma a los packs de 2 o 3 unidades." }
@@ -1038,14 +1040,17 @@ async function ensureTiers(id){
   return Object.keys(q).length>0;
 }
 function rerender(){ const y=window.scrollY; route(); window.scrollTo(0,y); }
+/* WhatsApp de la marca: el de la configuración de esta página si está cargado; si no, el de la tienda */
+function tdWa(){ const w=String((window.TIENDY_CONFIG||{}).WA||(TDS.store&&TDS.store.whatsapp)||"").replace(/\D/g,""); return w?(w.startsWith("595")?w:"595"+w.replace(/^0/,"")):""; }
 async function tdInit(attempt){
   attempt=attempt||0;
+  if(!attempt&&tdWa()){ WA_NUM=tdWa(); try{ waSync(); }catch(e){} }
   if(!window.TD||!TD.on) return;
   tdOrdLink();
   try{
     const [store,list,cities]=await Promise.all([TD.getStore(),TD.allProducts(),TD.getCities().catch(()=>null)]);
     TDS.store=store; TDS.cities=cities; tdMatch(list);
-    { const w=String(store&&store.whatsapp||"").replace(/\D/g,""); if(w){ WA_NUM=w.startsWith("595")?w:"595"+w.replace(/^0/,""); try{ waSync(); }catch(e){} } }
+    { const w=tdWa(); if(w){ WA_NUM=w; try{ waSync(); }catch(e){} } }
     await Promise.all(Object.entries(TDS.map).map(async([id,m])=>{ try{
       if(!m.skus&&m.slug){ const d=await TD.detail(m.slug); m.skus=d.skus||[]; m.img=TD.imageOf(d)||m.img; m.item=d; }
       m.skus=m.skus||[];
@@ -1193,8 +1198,8 @@ function tdThanksExtra(w){
   const ex=last.extra||[];
   if(ex.length){ const x=ex[ex.length-1], c=el("div","ups ok"); c.append(el("span","ut","✓ Sumado a tu pedido"), el("p","uw",byId[x.id].short+" va en el mismo envío (pedido N.º "+x.orderId+"). Total a pagar al recibir por todo: "+gs(last.total)+".")); w.append(c); }
   else tdUpsell(w);
-  const wa=(TDS.store&&TDS.store.whatsapp||"").replace(/\D/g,"");
-  if(wa){ const num=wa.startsWith("595")?wa:"595"+wa.replace(/^0/,"");
+  const wa=tdWa();
+  if(wa){ const num=wa;
     const ids=[last.orderId].concat(ex.map(x=>x.orderId)).filter(Boolean).map(n=>"#"+n).join(" y ");
     const msg="Hola! Hice el pedido "+ids+" en Beauty Clean por "+gs(last.total||0)+". Mi nombre es "+(last.name||"")+". Quedo atenta a la entrega.";
     const a=el("a","tbtn sec","Recibir la confirmación por WhatsApp"); a.href="https://wa.me/"+num+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; a.dataset.k="wa"; w.append(a); }
