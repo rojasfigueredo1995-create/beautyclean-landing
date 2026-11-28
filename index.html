@@ -1201,7 +1201,7 @@ function tdThanksExtra(w){
   const wa=tdWa();
   if(wa){ const num=wa;
     const ids=[last.orderId].concat(ex.map(x=>x.orderId)).filter(Boolean).map(n=>"#"+n).join(" y ");
-    const msg="Hola! Hice el pedido "+ids+" en Beauty Clean por "+gs(last.total||0)+". Mi nombre es "+(last.name||"")+". Quedo atenta a la entrega.";
+    const msg=["*BEAUTY CLEAN · Confirmación de pedido*","","Pedido N.º: *"+ids+"*","Total: *"+gs(last.total||0)+"*","Forma de pago: "+(thanksPaid()?"pagado":"pago al recibir"),"Nombre: "+(last.name||""),last.tel?"WhatsApp: "+last.tel:null,"","Solicito la confirmación de mi pedido. Quedo atenta a la entrega."].filter(x=>x!==null).join("\n");
     const a=el("a","tbtn sec","Recibir la confirmación por WhatsApp"); a.href="https://wa.me/"+num+"?text="+encodeURIComponent(msg); a.target="_blank"; a.rel="noopener"; a.dataset.k="wa"; w.append(a); }
 }
 /* Oferta para sumar un producto después de comprar: crea un segundo pedido con los mismos datos.
