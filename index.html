@@ -1339,7 +1339,7 @@ function rlRoll(SL){ const u=crypto.getRandomValues(new Uint32Array(1))[0]/42949
 function rlLead(d){ try{ if(window.fbq) window.fbq("track","Lead"); }catch(e){}
   if(!RULETA.leadUrl) return; try{ const m=RULETA.leadMap||{tel:"tel",mail:"mail",premio:"premio",pagina:"pagina"}, fd=new URLSearchParams(); fd.set(m.tel,d.tel); if(d.mail) fd.set(m.mail,d.mail); fd.set(m.premio,d.t); fd.set(m.pagina,location.hash||"#inicio"); fetch(RULETA.leadUrl,{method:"POST",mode:"no-cors",body:fd}).catch(()=>{}); }catch(e){} }
 const rlFecha=t=>{ const d=new Date(t), D=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][d.getDay()]; return D+" "+d.getDate()+"/"+(d.getMonth()+1)+" a las "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
-let rlTimer=null, rlRot=0;
+let rlTimer=null, rlRot=0, rlBackDone=false;
 function rlClose(){ const m=document.getElementById("rlM"); if(m){ m.remove(); document.body.style.overflow=""; } try{ sessionStorage.setItem("bc.rlx","1"); }catch(e){} rlTab(); }
 function rlOpen(){
   if(document.getElementById("rlM")) return; clearTimeout(rlTimer);
@@ -1414,6 +1414,8 @@ function rlSync(){
   rlTab(); if(!(RULETA.on||RL_DEMO)) return; clearTimeout(rlTimer);
   const h=location.hash||"#inicio"; if(/^#(checkout|gracias)/.test(h)||INFO[h.slice(1)]) return;
   let seen=false; try{ seen=!!sessionStorage.getItem("bc.rlx"); }catch(e){}
+  /* enlace del recordatorio: abre una vez la ruleta, con el premio guardado o para recuperarlo */
+  if(RL_BACK&&!rlBackDone){ const g=rlGet(); if(!(g&&(g.used||g.expired))){ rlBackDone=true; rlTimer=setTimeout(()=>{ if(!document.getElementById("rlM")&&$("drawer").hidden) rlOpen(); },900); return; } }
   if(!RL_DEMO&&(rlGet()||seen)) return; if(RL_DEMO&&seen) return;
   rlTimer=setTimeout(()=>{ if(!document.getElementById("rlM")&&$("drawer").hidden) rlOpen(); },RL_DEMO||RL_BACK?900:RULETA.delay);
 }
