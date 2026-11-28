@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Beauty Clean</title>
+<script>
+/* Enlaces viejos de la tienda anterior (anuncios, mensajes, Google): llevan al producto equivalente de la página nueva.
+   Se conservan los datos del anuncio (?utm..., fbclid) para que la medición siga funcionando. */
+(function(){
+  var M={
+    "moisture-cushion-base-maquillaje":"base",
+    "balsamo-reduce-lineas":"balsamo",
+    "cepillo-facial":"cepillo",
+    "pestanas-magneticas":"pestanas",
+    "medicube-pdrn":"pdrn",
+    "celimax-suero-de-retinol-30ml":"celimax",
+    "crema-facial-hidratante-ligera-para-manchas-oscuras-y-tono-de-piel-desigual":"manchas",
+    "dr-althea-crema-de-alivio-345-hidratante-facial-diario":"althea345",
+    "lifting-bee-venom-crema-antiarrugas":"beevenom",
+    "labial-para-rellenar-labios":"lipshot",
+    "crema-dr-althea-147":"althea147",
+    "serum-reafirmante-con-retinol":"retinol"
+  };
+  var p=location.pathname, m=/\/products\/([^\/?#]+)/.exec(p), h="#inicio";
+  if(m){ var k=decodeURIComponent(m[1]).toLowerCase(); h=M[k]?"#p-"+M[k]:"#productos"; }
+  else if(/\/(collections|cart|checkout|search)(\/|$)/.test(p)) h="#productos";
+  var base=/github\.io$/.test(location.hostname)?"/beautyclean-landing/":"/";
+  location.replace(base+location.search+h);
+})();
+</script>
+<noscript><meta http-equiv="refresh" content="0;url=/"></noscript>
+</head>
+<body style="font-family:system-ui,Arial,sans-serif;padding:32px;color:#111">
+<p>Te estamos llevando a la página de Beauty Clean…</p>
+<p><a href="/" style="color:#000">Entrar a Beauty Clean</a></p>
+</body>
+</html>
