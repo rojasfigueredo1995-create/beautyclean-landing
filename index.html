@@ -1317,7 +1317,7 @@ function rlOpen(){
     const go2=el("button","rgo",s.used||s.expired?"SEGUIR MIRANDO":"USAR MI PREMIO AHORA"); go2.type="button"; go2.addEventListener("click",()=>{ rlClose(); if(!s.used&&!s.expired&&!/^#(p-|checkout)/.test(location.hash)){ if(cart.length) openCart(); else go("productos"); } }); body.append(go2);
     /* guardar el premio en su WhatsApp: ella envía el mensaje ya escrito y el premio queda en el chat con la tienda */
     if(WA_NUM&&!s.used&&!s.expired){ const w=el("a","rwa"); w.innerHTML=WAICO; w.append(document.createTextNode("Guardar mi premio en WhatsApp"));
-      w.href="https://wa.me/"+WA_NUM+"?text="+encodeURIComponent("Hola Beauty Clean! Gané "+s.t+" en la ruleta ("+s.d+")."+(s.pin?" Código: "+s.pin+".":"")+" Quiero guardar mi premio. Vale hasta el "+rlFecha(s.exp)+"."); w.target="_blank"; w.rel="noopener";
+      w.href="https://wa.me/"+WA_NUM+"?text="+encodeURIComponent(["*BEAUTY CLEAN · Registro de premio*","","Premio: *"+s.t+"*","Detalle: "+s.d+".",s.pin?"Código de premio: *"+s.pin+"*":null,"Válido hasta: "+rlFecha(s.exp)+".",s.tel?"WhatsApp registrado: "+s.tel:null,"","Solicito el registro de mi premio para utilizarlo en mi compra."].filter(x=>x!==null).join("\n")); w.target="_blank"; w.rel="noopener";
       body.append(w, el("p","rleg","Se abre WhatsApp con el mensaje listo: tocá enviar y tu premio queda guardado en nuestro chat.")); }
     if(RL_DEMO){ const again=el("button","rno","Girar de nuevo (solo en modo prueba)"); again.type="button"; again.addEventListener("click",()=>{ showForm(); }); body.append(again); }
     body.append(bases()); go2.focus(); };
